@@ -1,13 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
 from sklearn.preprocessing import StandardScaler
 
 def plot_correlation_heatmap(df: pd.DataFrame):
     '''Plots a heatmap of feature correlations.'''
+    corr_matrix = df.corr()
+    # Makes the heatmap triangular-- cuts off redundant parts!
+    matrix = np.triu(corr_matrix)
     plt.figure(figsize=(12, 8))
-    sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
+    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", mask=matrix)
     plt.title("Correlation Heatmap")
     plt.show()
 
