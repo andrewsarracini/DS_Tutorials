@@ -112,6 +112,8 @@ def bayesian_opt_tuning(model, search_spaces, X_train, y_train, cv=5, n_iter=50,
 def tpot_opt_tuning(X_train, y_train, X_test, y_test, generations=5, population_size=20, cv=5):
     '''
     Uses TPOT to find the best params
+    Does not work like the other methods, generates a PYTHON FILE when complete
+    *** CAUTION! TPOT can take hours/days to run!
     '''
     tpot = TPOTClassifier(generations=generations, population_size=population_size, cv=cv, verbosity=2, n_jobs=-1)
     tpot.fit(X_train, y_train)
