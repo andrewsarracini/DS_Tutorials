@@ -5,6 +5,9 @@ import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
 from sklearn.preprocessing import StandardScaler
 
+# Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
+# Note, use pd.get_dummies(df, drop_first = True) 
+
 def plot_correlation_heatmap(df: pd.DataFrame):
     '''Plots a heatmap of feature correlations.'''
     corr_matrix = df.corr()
@@ -57,21 +60,31 @@ def extended_summary(df: pd.DataFrame):
     return stats
 
 
-def calc_vif(df: pd.DataFrame, features: list):
-    ''' 
-    *** Requires numerical features! ***
-    Calculates Variance Inflation Factor (VIF)
-    - VIF > 10: Severe multicollinearity; the feature might need to be removed.
-    - VIF > 5: High multicollinearity; consider removal or transformation.
-    - VIF ≤ 5: Low multicollinearity; the feature is likely acceptable.
+def calc_vif(df: pd.DataFrame):
     '''
-    scaler = StandardScaler()
-    scaled_features = scaler.fit_transform(df[features])
-    scaled_df = pd.DataFrame(scaled_features, columns=features)
+    Computes Variance Inflation Factor (VIF) for numerical features.
+    
+    - VIF > 10: Severe multicollinearity (consider removing the feature).
+    - VIF > 5: High multicollinearity (investigate further).
+    - VIF ≤ 5: Low multicollinearity (acceptable).
 
-    # Calculate VIF for each feature:
+    Args:
+        df (pd.DataFrame): The dataset.
+
+    Returns:
+        pd.DataFrame: A DataFrame showing VIF values for each numeric feature.
+    '''
+    
+    # Select only numeric columns
+    num_cols = df.select_dtypes(include=['number']).columns
+
+    # Protect against empty selection
+    if len(num_cols) == 0:
+        raise ValueError("No numeric columns found in the dataset.")
+
+    # Compute VIF
     vif_data = pd.DataFrame()
-    vif_data['Feature'] = features
-    vif_data['VIF'] = [variance_inflation_factor(scaled_df.values, i) for i in range(scaled_df.shape[1])]
+    vif_data['Feature'] = num_cols
+    vif_data['VIF'] = [variance_inflation_factor(df[num_cols].values, i) for i in range(len(num_cols))]
 
     return vif_data
