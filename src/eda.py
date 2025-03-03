@@ -28,10 +28,12 @@ def plot_dists(df: pd.DataFrame, features: list):
         plt.ylabel("Count") 
         plt.show() 
 
-def extended_summary(df: pd.DataFrame): 
+def extended_describe(df: pd.DataFrame): 
     '''
     Computes advanced statistics beyond pandas `.describe()`.
     Includes skewness, kurtosis, and percentiles for numerical features.
+
+    Updated to only include numeric features as `df_num`
 
     - Skewness: Measures the asymmetry of the data distribution.
         - Positive skew: A longer tail on the right (right-skewed).
@@ -50,13 +52,14 @@ def extended_summary(df: pd.DataFrame):
     Returns:
         pd.DataFrame: A DataFrame with detailed statistics for numerical features.
     '''
+    df_num = df.select_dtypes(include=['number']).columns
 
-    stats = df.describe().T
-    stats['skewness'] = df.skew()
-    stats['kurtosis'] = df.kurtosis()
-    percentiles = [5, 25, 75, 95]
-    for p in percentiles:
-        stats[f'{p}th percentile'] = df.quantile(q = p/100) 
+    stats = df_num.describe().T
+    stats['skewness'] = df_num.skew()
+    stats['kurtosis'] = df_num.kurtosis()
+    # percentiles = [5, 25, 75, 95]
+    # for p in percentiles:
+    #     stats[f'{p}th percentile'] = df_num.quantile(q = p/100) 
     return stats
 
 
