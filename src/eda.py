@@ -52,7 +52,7 @@ def extended_describe(df: pd.DataFrame):
     Returns:
         pd.DataFrame: A DataFrame with detailed statistics for numerical features.
     '''
-    df_num = df.select_dtypes(include=['number']).columns
+    df_num = df.select_dtypes('number')
 
     stats = df_num.describe().T
     stats['skewness'] = df_num.skew()
