@@ -4,6 +4,7 @@ import seaborn as sns
 import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
 from sklearn.preprocessing import StandardScaler
+import math
 
 # Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
 # Note, use pd.get_dummies(df, drop_first = True) 
@@ -19,14 +20,40 @@ def plot_correlation_heatmap(df: pd.DataFrame):
     plt.show()
 
 def plot_dists(df: pd.DataFrame, features: list):
-    ''' Plots distributions of specified features'''
-    for feature in features: 
-        plt.figure(figsize=(8,4))
-        sns.histplot(df[feature], kde=True, color='blue')
-        plt.title(f'Distribution of {feature}')
-        plt.xlabel(feature)
-        plt.ylabel("Count") 
-        plt.show() 
+    ''' 
+    Plots distributions of specified features
+    
+    - If 1-2 features: individual plots
+    - if 3+ features: grid layout
+    '''
+
+    rows = math.ceil(len(features) / 3) # max 3 plots per row
+    cols = min(len(features), 3) # 3 columns for readability
+
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
+    axes = np.array(axes).flatten() 
+
+    # Now onto plot generation
+
+    for i, feature in enumerate(features):
+        sns.histplot(df[feature], kde=True, color='blue', ax=axes[i]) 
+        axes[i].set_title(f'Distribution of {feature}')
+        axes[i].set_xlabel(feature)
+        axes[i].set_ylabel('Count')
+
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+
+    # for feature in features: 
+    #     plt.figure(figsize=(8,4))
+    #     sns.histplot(df[feature], kde=True, color='blue')
+    #     plt.title(f'Distribution of {feature}')
+    #     plt.xlabel(feature)
+    #     plt.ylabel("Count") 
+    #     plt.show() 
 
 def extended_describe(df: pd.DataFrame): 
     '''
