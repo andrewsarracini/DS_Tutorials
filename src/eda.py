@@ -5,6 +5,7 @@ import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
 from sklearn.preprocessing import StandardScaler
 import math
+from sklearn.linear_model import LassoCV
 
 # Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
 # Note, use pd.get_dummies(df, drop_first = True) 
@@ -118,3 +119,34 @@ def calc_vif(df: pd.DataFrame):
     vif_data['VIF'] = [variance_inflation_factor(df[num_cols].values, i) for i in range(len(num_cols))]
 
     return vif_data
+
+def lasso_feat_select(df: pd.DataFrame, target: str, alpha_range=np.logspace(-4, 0, 50)):
+    '''
+    Performs automatic feature selection using LASSO regression
+
+    Args: 
+        df (DataFrame): dataset that has already been OHE
+        target (str): name of target column
+
+    Returns: 
+        DataFrame: new (smaller) dataset with selected features
+    '''
+
+    X = df.select_dtypes('number').drop(columns=[target])
+    y = df[target]
+
+    # LASSO requires standardized features 
+    # Data standardization occurs in `train.py`, so these results won't be passed on
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X) 
+
+    lasso = LassoCV(alphas=alpha_range, cv=5, random_state = 10)
+    lasso.fit(X_scaled, y)
+
+    # Grabbing the selected (non-zero coeffs) feats
+    selected_feats = X.columns[lasso.coef_ != 0].to_list()
+
+    print(f'Current features: {len(selected_feats)}')
+    print(f'Original features: {len(df.columns)}')
+
+    return df[selected_feats + [target]]
