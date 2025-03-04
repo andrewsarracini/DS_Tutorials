@@ -5,7 +5,7 @@ import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import math
-from sklearn.linear_model import Lasso, LassoCV,  ElasticNetCV
+from sklearn.linear_model import Lasso, LassoCV, RidgeCV, ElasticNetCV
 
 # Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
 # Note, use pd.get_dummies(df, drop_first = True) 
@@ -192,6 +192,71 @@ def elastic_feat_select(df: pd.DataFrame, target:str, alpha_range=np.logspace(-4
     selected_feats = X.columns[model.coef_ != 0].to_list()
 
     print(f'Current features: {len(selected_feats)}')
+    print(f'Original features: {len(df.columns)}')
+
+    return df[selected_feats + [target]]
+
+## Under construction, merging lasso_feat_select and elastic_feat_select into feat_select
+
+def feat_select(df: pd.DataFrame, target: str, method='elastic_net', 
+                alpha_range=np.logspace(-4, 0, 50), l1_ratios=[0.1, 0.5, 0.9]):
+    '''
+    Performs automatic feature selection using LASSO, Ridge, or Elastic Net regression.
+
+    Args: 
+        df (DataFrame): dataset that has already been OHE
+        target (str): name of target column
+        method (str): 'lasso', 'ridge', or 'elastic_net' (default: 'elastic_net')
+        alpha_range (array-like): range of alpha values to search
+        l1_ratios (list): list of L1/L2 mixing values for Elastic Net (ignored for LASSO & Ridge)
+
+    Returns: 
+        DataFrame: new (smaller) dataset with selected features
+    '''
+
+    # Select numeric features (including OHE)
+    X = df.select_dtypes('number').drop(columns=[target])
+    y = df[target]
+
+    # Standardize all features 
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)  
+
+    # Choose model based on method
+    if method == 'lasso':
+        model = LassoCV(alphas=alpha_range, cv=5, random_state=10, max_iter=10000)
+    elif method == 'ridge':
+        model = RidgeCV(alphas=alpha_range, store_cv_values=True)
+    elif method == 'elastic_net':
+        model = ElasticNetCV(alphas=alpha_range, l1_ratio=l1_ratios, cv=5, random_state=10, max_iter=10000)
+    else:
+        raise ValueError("Invalid method. Choose from 'lasso', 'ridge', or 'elastic_net'.")
+
+    # Fit model
+    model.fit(X_scaled, y)
+
+    # Print best hyperparameters
+    if method in ['lasso', 'elastic_net']:
+        print(f'Best alpha: {model.alpha_}')
+    if method == 'elastic_net':
+        print(f'Best l1_ratio: {model.l1_ratio_}')
+
+    # Get feature coefficients
+    coef_series = pd.Series(model.coef_, index=X.columns)
+    
+    # Sort coefficients by absolute value for better readability
+    coef_series = coef_series.sort_values(key=abs, ascending=False)
+
+    print("\nFeature Coefficients:")
+    print(coef_series.to_string())
+
+    # Select features with nonzero coefficients (LASSO & Elastic Net)
+    if method in ['lasso', 'elastic_net']:
+        selected_feats = coef_series[coef_series != 0].index.to_list()
+    else:  # Ridge keeps all features
+        selected_feats = X.columns.to_list()
+
+    print(f'\nSelected features: {len(selected_feats)}')
     print(f'Original features: {len(df.columns)}')
 
     return df[selected_feats + [target]]
