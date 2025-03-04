@@ -135,23 +135,25 @@ def lasso_feat_select(df: pd.DataFrame, target: str, alpha_range=np.logspace(-4,
     X = df.select_dtypes('number').drop(columns=[target])
     y = df[target]
 
-    # LASSO requires standardized features 
-    # Data standardization occurs in `train.py`, so these results won't be passed on
-
-    # MinMax scaler keeps binary (OHE) features prevents them from being over-penalized!
+    # MinMaxScaler keeps binary (OHE) features from being over-penalized
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X) 
 
-    lasso = LassoCV(cv=5, random_state = 10, max_iter=10000)
+    # Fit LassoCV
+    model = LassoCV(alphas=alpha_range, cv=5, random_state=10, max_iter=10000)
+    model.fit(X_scaled, y)  
 
-    print(f'Best alpha:{lasso.alpha_}') 
+    if not hasattr(model, "alpha_"):
+        raise ValueError("LassoCV did not find an optimal alpha. Try adjusting alpha_range.")
 
-    lasso_best = Lasso(alpha=lasso.alpha_) 
-    lasso_best.fit(X_scaled, y) 
+    print(f'Best alpha: {model.alpha_}')  
 
+    # Fit Lasso with the best alpha
+    lasso_best = Lasso(alpha=model.alpha_)
+    lasso_best.fit(X_scaled, y)  
 
-    # Grabbing the selected (non-zero coeffs) feats
-    selected_feats = X.columns[lasso.coef_ != 0].to_list()
+    # Grabbing the selected (non-zero coeffs) features
+    selected_feats = X.columns[lasso_best.coef_ != 0].to_list()
 
     print(f'Current features: {len(selected_feats)}')
     print(f'Original features: {len(df.columns)}')
