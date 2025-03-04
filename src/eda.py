@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import math
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso, LassoCV
 
 # Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
 # Note, use pd.get_dummies(df, drop_first = True) 
@@ -137,11 +137,18 @@ def lasso_feat_select(df: pd.DataFrame, target: str, alpha_range=np.logspace(-4,
 
     # LASSO requires standardized features 
     # Data standardization occurs in `train.py`, so these results won't be passed on
-    scaler = StandardScaler()
+
+    # MinMax scaler keeps binary (OHE) features prevents them from being over-penalized!
+    scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X) 
 
-    lasso = LassoCV(alphas=alpha_range, cv=5, random_state = 10)
-    lasso.fit(X_scaled, y)
+    lasso = LassoCV(cv=5, random_state = 10, max_iter=10000)
+
+    print(f'Best alpha:{lasso.alpha_}') 
+
+    lasso_best = Lasso(alpha=lasso.alpha_) 
+    lasso_best.fit(X_scaled, y) 
+
 
     # Grabbing the selected (non-zero coeffs) feats
     selected_feats = X.columns[lasso.coef_ != 0].to_list()
