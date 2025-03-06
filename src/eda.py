@@ -5,7 +5,8 @@ import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import math
-from sklearn.linear_model import Lasso, LassoCV, RidgeCV, ElasticNetCV
+from sklearn.linear_model import Lasso, LassoCV, Ridge, RidgeCV, ElasticNet, ElasticNetCV
+from sklearn.model_selection import GridSearchCV 
 
 # Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
 # Note, use pd.get_dummies(df, drop_first = True) 
@@ -120,86 +121,10 @@ def calc_vif(df: pd.DataFrame):
 
     return vif_data
 
-def lasso_feat_select(df: pd.DataFrame, target: str, alpha_range=np.logspace(-4, 0, 50)):
-    '''
-    Performs automatic feature selection using LASSO regression
-
-    Args: 
-        df (DataFrame): dataset that has already been OHE
-        target (str): name of target column
-
-    Returns: 
-        DataFrame: new (smaller) dataset with selected features
-    '''
-
-    X = df.select_dtypes('number').drop(columns=[target])
-    y = df[target]
-
-    # MinMaxScaler keeps binary (OHE) features from being over-penalized
-    scaler = MinMaxScaler()
-    X_scaled = scaler.fit_transform(X) 
-
-    # Fit LassoCV
-    model = LassoCV(alphas=alpha_range, cv=5, random_state=10, max_iter=10000)
-    model.fit(X_scaled, y)  
-
-    if not hasattr(model, "alpha_"):
-        raise ValueError("LassoCV did not find an optimal alpha. Try adjusting alpha_range.")
-
-    print(f'Best alpha: {model.alpha_}')  
-
-    # Fit Lasso with the best alpha
-    lasso_best = Lasso(alpha=model.alpha_)
-    lasso_best.fit(X_scaled, y)  
-
-    # Grabbing the selected (non-zero coeffs) features
-    selected_feats = X.columns[lasso_best.coef_ != 0].to_list()
-
-    print(f'Current features: {len(selected_feats)}')
-    print(f'Original features: {len(df.columns)}')
-
-    return df[selected_feats + [target]]
-
-def elastic_feat_select(df: pd.DataFrame, target:str, alpha_range=np.logspace(-4, 0, 50), l1_ratios=[0.1, 0.5, 0.9]):
-    '''
-    Auto Feature Selection using E-Net
-
-    Args: 
-        df (DataFrame): dataset that has been OHE
-        target (str): name of target feature
-        alpha_range (array): range of alpha values to search
-        l1_ratios (list): list of L1/L2 mixing values for E-Net
-
-        Returns: 
-            Condensed df with selected feats
-    '''
-    
-    X = df.select_dtypes('number').drop(columns=[target])
-    y = df[target]
-
-    # Going back to StandardScaler -- will try out MinMax if needed
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)  
-
-    # Fit ElasticNetCV with cross-validation
-    model = ElasticNetCV(alphas=alpha_range, l1_ratio=l1_ratios, cv=5, random_state=10, max_iter=10000)
-    model.fit(X_scaled, y)
-
-    print(f'Best alpha: {model.alpha_}')
-    print(f'Best l1_ratio: {model.l1_ratio_}')
-
-    # Grabbing non-zero feats
-    selected_feats = X.columns[model.coef_ != 0].to_list()
-
-    print(f'Current features: {len(selected_feats)}')
-    print(f'Original features: {len(df.columns)}')
-
-    return df[selected_feats + [target]]
-
-## Under construction, merging lasso_feat_select and elastic_feat_select into feat_select
+# Under construction, merging lasso_feat_select and elastic_feat_select into feat_select
 
 def feat_select(df: pd.DataFrame, target: str, method='elastic_net', 
-                alpha_range=np.logspace(-4, 0, 50), l1_ratios=[0.1, 0.5, 0.9]):
+                alpha_range=np.logspace(-6, 0, 50), l1_ratios=[0.1, 0.5, 0.9]):
     '''
     Performs automatic feature selection using LASSO, Ridge, or Elastic Net regression.
 
@@ -226,7 +151,7 @@ def feat_select(df: pd.DataFrame, target: str, method='elastic_net',
     if method == 'lasso':
         model = LassoCV(alphas=alpha_range, cv=5, random_state=10, max_iter=10000)
     elif method == 'ridge':
-        model = RidgeCV(alphas=alpha_range, store_cv_values=True)
+        model = RidgeCV(alphas=alpha_range, store_cv_results=True)
     elif method == 'elastic_net':
         model = ElasticNetCV(alphas=alpha_range, l1_ratio=l1_ratios, cv=5, random_state=10, max_iter=10000)
     else:
