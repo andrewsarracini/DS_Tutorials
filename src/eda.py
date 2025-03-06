@@ -6,7 +6,9 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import math
 from sklearn.linear_model import Lasso, LassoCV, Ridge, RidgeCV, ElasticNet, ElasticNetCV
-from sklearn.model_selection import GridSearchCV 
+from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import StratifiedKFold
+
 
 # Note! If data contains non-numerical data, make sure One-Hot Encoding occurs BEFORE running eda functions
 # Note, use pd.get_dummies(df, drop_first = True) 
@@ -123,65 +125,66 @@ def calc_vif(df: pd.DataFrame):
 
 # Under construction, merging lasso_feat_select and elastic_feat_select into feat_select
 
-def feat_select(df: pd.DataFrame, target: str, method='elastic_net', 
-                alpha_range=np.logspace(-6, 0, 50), l1_ratios=[0.1, 0.5, 0.9]):
+# def feat_select(df: pd.DataFrame, target: str, method='elastic_net', 
+#                 alpha_range=np.logspace(-6, -2, 50), l1_ratios=[0.1, 0.5, 0.9]):
+
+def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabled=True):
     '''
-    Performs automatic feature selection using LASSO, Ridge, or Elastic Net regression.
+    - Performs automatic feature selection using Elastic Net regression (but searches params that qualify as full lasso or full ridge)
+    - Handles class imbalance via SMOTE (if it exists)
 
     Args: 
         df (DataFrame): dataset that has already been OHE
         target (str): name of target column
-        method (str): 'lasso', 'ridge', or 'elastic_net' (default: 'elastic_net')
-        alpha_range (array-like): range of alpha values to search
-        l1_ratios (list): list of L1/L2 mixing values for Elastic Net (ignored for LASSO & Ridge)
+        imbalance _thresh: if minority class is below this threshold, apply SMOTE
 
     Returns: 
-        DataFrame: new (smaller) dataset with selected features
+        - selected_feats: list of selected feature names
+        - best_alpha: best alpha value chosen by ElasticNetCV
     '''
 
-    # Select numeric features (including OHE)
-    X = df.select_dtypes('number').drop(columns=[target])
-    y = df[target]
+    # Check for imbalanced target class
+    class_counts = np.bincount(df[target])
+    min_class_ratio = class_counts.min() / class_counts.sum()
 
-    # Standardize all features 
+    if min_class_ratio < imbalance_thresh and smote_enabled:
+        print(f'⚠️ Imbalanced data detected \n(Minority class = {min_class_ratio:.2%}) \nApplying SMOTE...\n')
+        smote = SMOTE(random_state=10)
+        X, y = smote.fit_resample(df, df[target])
+    else: 
+        X, y = df, df[target]
+
+    original_feat_count = X.shape[1]
+
+    # Scaling the data
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)  
 
-    # Choose model based on method
-    if method == 'lasso':
-        model = LassoCV(alphas=alpha_range, cv=5, random_state=10, max_iter=10000)
-    elif method == 'ridge':
-        model = RidgeCV(alphas=alpha_range, store_cv_results=True)
-    elif method == 'elastic_net':
-        model = ElasticNetCV(alphas=alpha_range, l1_ratio=l1_ratios, cv=5, random_state=10, max_iter=10000)
-    else:
-        raise ValueError("Invalid method. Choose from 'lasso', 'ridge', or 'elastic_net'.")
+    # ElasticNetCV Regularization
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=10) 
+    elastic_model = ElasticNetCV(
+        alphas = np.logspace(-6, -2, 50), 
+        l1_ratio=[0.1, 0.5, 0.9],
+        cv = cv, 
+        random_state=10
+    )
+    elastic_model.fit(X_scaled, y) 
 
-    # Fit model
-    model.fit(X_scaled, y)
+    # Finally, feature selection!
+    selected_feats = X.columns[elastic_model.coef_ != 0].to_list()
+    selected_feat_count = len(selected_feats)
 
-    # Print best hyperparameters
-    if method in ['lasso', 'elastic_net']:
-        print(f'Best alpha: {model.alpha_}')
-    if method == 'elastic_net':
-        print(f'Best l1_ratio: {model.l1_ratio_}')
+    if elastic_model.l1_ratio_ > 0.5:
+        l1_message = "(closer to  lasso)"
+    elif elastic_model.l1_ratio_ < 0.5:
+        l1_message = "(closer to ridge)"
 
-    # Get feature coefficients
-    coef_series = pd.Series(model.coef_, index=X.columns)
-    
-    # Sort coefficients by absolute value for better readability
-    coef_series = coef_series.sort_values(key=abs, ascending=False)
+    print("ElasticNet Feature Selection Summary")
+    print("=====================================")
+    print(f"Original feature count: {original_feat_count}")
+    print(f"🎯 Selected feature count: {selected_feat_count} (🔻{original_feat_count - selected_feat_count} trimmed)")
+    print(f"Best Alpha: {elastic_model.alpha_:.2e}")
+    print(f"Best L1 Ratio: {elastic_model.l1_ratio_:.2f} {l1_message}")
+    print(f"Final Selected Features:")
 
-    print("\nFeature Coefficients:")
-    print(coef_series.to_string())
-
-    # Select features with nonzero coefficients (LASSO & Elastic Net)
-    if method in ['lasso', 'elastic_net']:
-        selected_feats = coef_series[coef_series != 0].index.to_list()
-    else:  # Ridge keeps all features
-        selected_feats = X.columns.to_list()
-
-    print(f'\nSelected features: {len(selected_feats)}')
-    print(f'Original features: {len(df.columns)}')
-
-    return df[selected_feats + [target]]
+    return selected_feats
