@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from statsmodels.stats.outliers_influence import variance_inflation_factor 
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 import math
-from sklearn.linear_model import Lasso, LassoCV, Ridge, RidgeCV, ElasticNet, ElasticNetCV
+from sklearn.linear_model import ElasticNetCV
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import StratifiedKFold
 
@@ -197,7 +197,7 @@ def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabl
     print(f"Final Selected Features:")
     print(selected_feats)
 
-    print('---------------')
+    print('----------------')
     nonzero_count = np.sum(elastic_model.coef_ != 0)
     print(f"Non-zero Coefficients: {nonzero_count}/{len(elastic_model.coef_)}")
     print("All Coefficients:", elastic_model.coef_)
