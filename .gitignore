@@ -169,3 +169,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# For now adding .pkl files to avoid the github space limit
+*.pkl

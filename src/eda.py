@@ -157,11 +157,24 @@ def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabl
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)  
 
+    # pre-alpha work because E-Net is finicky
+    # Now alpha is tied to signal strength!
+    min_alpha = (1.e-7) * np.median(np.abs(X_scaled.T @ y)) 
+
+    # pre-l1_ratio work because E-Net is finicky
+    # Hopefully this solves the SMOTE-enabled problem of killing all features
+    # By leaning more towards ridge
+    if smote_enabled:
+        l1_ratio = 0.6
+    else: 
+        l1_ratio = [0.1, 0.5, 0.9]
+
     # ElasticNetCV Regularization
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=10) 
     elastic_model = ElasticNetCV(
-        alphas = np.logspace(-6, -2, 50), 
-        l1_ratio=[0.1, 0.5, 0.9],
+        # alphas = np.logspace(-6, -3, 50), 
+        alphas = np.geomspace(min_alpha, min_alpha * 100, 50),
+        l1_ratio = l1_ratio,
         cv = cv, 
         random_state=10
     )
@@ -171,17 +184,22 @@ def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabl
     selected_feats = X.columns[elastic_model.coef_ != 0].to_list()
     selected_feat_count = len(selected_feats)
 
-    if elastic_model.l1_ratio_ > 0.5:
-        l1_message = "(closer to  lasso)"
-    elif elastic_model.l1_ratio_ < 0.5:
-        l1_message = "(closer to ridge)"
-
     print("ElasticNet Feature Selection Summary")
     print("=====================================")
+    if smote_enabled: 
+        print('SMOTE enabled')
+    else: 
+        print('SMOTE disabled')
     print(f"Original feature count: {original_feat_count}")
     print(f"Selected feature count: {selected_feat_count} (🔻{original_feat_count - selected_feat_count} trimmed)")
     print(f"Best Alpha: {elastic_model.alpha_:.2e}")
-    print(f"Best L1 Ratio: {elastic_model.l1_ratio_:.2f} {l1_message}")
+    print(f"Best L1 Ratio: {elastic_model.l1_ratio_:.2f}")
     print(f"Final Selected Features:")
+    print(selected_feats)
+
+    print('---------------')
+    nonzero_count = np.sum(elastic_model.coef_ != 0)
+    print(f"Non-zero Coefficients: {nonzero_count}/{len(elastic_model.coef_)}")
+    print("All Coefficients:", elastic_model.coef_)
 
     return selected_feats
