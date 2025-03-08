@@ -125,9 +125,6 @@ def calc_vif(df: pd.DataFrame):
 
 # Under construction, merging lasso_feat_select and elastic_feat_select into feat_select
 
-# def feat_select(df: pd.DataFrame, target: str, method='elastic_net', 
-#                 alpha_range=np.logspace(-6, -2, 50), l1_ratios=[0.1, 0.5, 0.9]):
-
 def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabled=True):
     '''
     - Performs automatic feature selection using Elastic Net regression (but searches params that qualify as full lasso or full ridge)
@@ -150,9 +147,9 @@ def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabl
     if min_class_ratio < imbalance_thresh and smote_enabled:
         print(f'⚠️ Imbalanced data detected \n(Minority class = {min_class_ratio:.2%}) \nApplying SMOTE...\n')
         smote = SMOTE(random_state=10)
-        X, y = smote.fit_resample(df, df[target])
+        X, y = smote.fit_resample(df.drop(columns=[target]), df[target])
     else: 
-        X, y = df, df[target]
+        X, y = df.drop(columns=[target]), df[target]
 
     original_feat_count = X.shape[1]
 
@@ -182,7 +179,7 @@ def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabl
     print("ElasticNet Feature Selection Summary")
     print("=====================================")
     print(f"Original feature count: {original_feat_count}")
-    print(f"🎯 Selected feature count: {selected_feat_count} (🔻{original_feat_count - selected_feat_count} trimmed)")
+    print(f"Selected feature count: {selected_feat_count} (🔻{original_feat_count - selected_feat_count} trimmed)")
     print(f"Best Alpha: {elastic_model.alpha_:.2e}")
     print(f"Best L1 Ratio: {elastic_model.l1_ratio_:.2f} {l1_message}")
     print(f"Final Selected Features:")
