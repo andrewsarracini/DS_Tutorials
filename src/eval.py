@@ -26,7 +26,7 @@ def eval_classification(model, X_test, y_test):
         'classification_rep' : classification_report(y_test, y_pred, output_dict=True) 
     }
 
-    print('\nEvaluation Metrics:') 
+    print(f'\nEvaluation Metrics: ') 
     for key, value in metrics.items():
         if key not in ['confusion_matrix', 'classification_rep']:
             print(f'{key.capitalize()}: {value:.4f}')
