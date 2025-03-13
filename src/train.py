@@ -5,16 +5,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 import joblib
 
-def extract_target(df: pd.DataFrame, target: str): 
-    '''
-    Splits the dataset into features (X) and target (y)
-    
-    df -- input Dataframe
-    target -- Name of the target variable column
-    '''
-    X = df.drop(columns=[target])
-    y = df[target]
-    return X, y
+
 
 def train_model(X_train, y_train, models, save_dir='../models'):
     '''
@@ -46,8 +37,8 @@ def train_model(X_train, y_train, models, save_dir='../models'):
      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=10)
 
     models = {
-        'RandomForest': (RandomForestClassifier, {'n_estimators':100, random_state=10}),
-        'LogisticReg': (LogisticRegression, {'C':0.1})
+        'RandomForest': (RandomForestClassifier, {'class_weight':'balanced'}),
+        'XGBoost': (XGBClassifier, None)
     }
 
     trained_models = train_model(X_train, y_train, models)
