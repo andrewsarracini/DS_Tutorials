@@ -80,12 +80,12 @@ def eval_classification(model, X_test, y_test):
         "model_name": model_name,
         "hyperparameters": model_params,
         "metrics": {
-            "accuracy": accuracy,
-            "weighted_precision": precision,
-            "weighted_recall": recall,
-            "weighted_f1": f1
+            "accuracy": round(accuracy, 4),
+            "weighted_precision": round(precision, 4),
+            "weighted_recall": round(recall, 4), 
+            "weighted_f1": round(f1, 4) 
         },
-        "confusion_matrix": cm.tolist()
+        "confusion_matrix": cm.to_string()
     }
 
     try:
