@@ -9,17 +9,15 @@ import json
 import os
 
 def setup_logger():
-    """
-    Sets up a rotating log file in the logs directory at the base of the repo.
-    """
+    """ Sets up a rotating log file to ensure logs remain readable and structured. """
+    
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())), "logs")
 
-    # Go up one level (to the repo base) and create the 'logs' folder there
-    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
-    os.makedirs(log_dir, exist_ok=True)  # Ensure logs directory exists
+    os.makedirs(log_dir, exist_ok=True)
 
     log_file = os.path.join(log_dir, "model_eval.log")
 
-    handler = RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=10)  # 5MB per file, keep 10 files max
+    handler = RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=10)
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
@@ -31,30 +29,23 @@ def setup_logger():
 logger = setup_logger()
 
 def serialize_params(params):
-    '''Filters, cleans, and serializes model parameters for logging.'''
+    ''' Filters, cleans, and serializes model parameters for logging. '''
     relevant_params = {}
     for k, v in params.items():
         if v is None:
             continue
         try:
-            json.dumps(v)  # Check if it's serializable
+            json.dumps(v)  
             relevant_params[k] = v
         except (TypeError, OverflowError):
-            relevant_params[k] = str(v)  # Convert non-serializable objects to string
+            relevant_params[k] = str(v)  
     return relevant_params
 
 def eval_classification(model, X_test, y_test):
     '''
     Evaluates a classification model and prints/logs performance metrics.
-    
-    Params:
-    - model: Trained model
-    - X_test: Test features
-    - y_test: True labels
     '''
-
     model_name = type(model.steps[-1][1]).__name__
-
     y_pred = model.predict(X_test)
 
     # Compute metrics
@@ -65,60 +56,60 @@ def eval_classification(model, X_test, y_test):
 
     # Confusion matrix
     cm = confusion_matrix(y_test, y_pred)
-    cm_df = pd.DataFrame(cm, index=["Actual 0", "Actual 1"], columns=["Predicted 0", "Predicted 1"])
+    cm_df = pd.DataFrame(cm, index=[f"Actual {i}" for i in range(len(cm))], columns=[f"Predicted {i}" for i in range(len(cm))])
 
     # Classification report
     report = classification_report(y_test, y_pred, output_dict=True)
-    
+
     try:
         model_params = serialize_params(model.get_params())
     except Exception as e:
         model_params = "Parameters not available"
         logger.error(f"Error retrieving model parameters: {e}")
 
-    log_entry = {
-        "model_name": model_name,
-        "hyperparameters": model_params,
-        "metrics": {
-            "accuracy": round(accuracy, 4),
-            "weighted_precision": round(precision, 4),
-            "weighted_recall": round(recall, 4), 
-            "weighted_f1": round(f1, 4) 
-        },
-        "confusion_matrix": cm.to_string()
-    }
+    log_message = (
+        "\n" + "-"*80 + "\n"
+        f"Model: {model_name}\n"
+        f"Hyperparameters: {json.dumps(model_params, indent=4)}\n\n"
+        "Overall Metrics:\n"
+        f"Accuracy: {accuracy:.4f}\n"
+        f"Precision: {precision:.4f}\n"
+        f"Recall: {recall:.4f}\n"
+        f"F1-score: {f1:.4f}\n\n"
+        "Confusion Matrix:\n"
+        f"{cm_df.to_string()}\n"
+        + "-"*80 + "\n"
+    )
 
     try:
-        logger.info(json.dumps(log_entry, indent=4))
+        logger.info(log_message)
     except Exception as e:
-        logger.error(f"Error logging JSON: {e}")
-        print(json.dumps(log_entry, indent=4))  # Print for debugging if logging fails
-
-    # Print results for readability
-    formatted_params = json.dumps(model_params, indent=4)
+        logger.error(f"Error writing to log file: {e}")
+        print(log_message)  # Print to console as a fallback
 
     # Print results for readability
     print(f"\nEvaluating Model: {model_name}")
     print("Hyperparameters:")
-    print(formatted_params)  # Print formatted JSON
+    print(json.dumps(model_params, indent=4))  
     
     print("\nOverall Metrics:")
     print(pd.DataFrame({
         "Metric": ["Accuracy", "Weighted Precision", "Weighted Recall", "Weighted F1-Score"],
         "Score": [accuracy, precision, recall, f1]
-    }).round(4))
+    }).round(4).to_markdown(index=False))
 
     print("\nClass-Specific Metrics:")
     print(pd.DataFrame({
-        "Class": ["0", "1"],
-        "Precision": [report["0"]["precision"], report["1"]["precision"]],
-        "Recall": [report["0"]["recall"], report["1"]["recall"]],
-        "F1-Score": [report["0"]["f1-score"], report["1"]["f1-score"]],
-        "Support": [report["0"]["support"], report["1"]["support"]]
-    }).round(4))
+        "Class": list(report.keys())[:-3],  # Exclude avg/total rows
+        "Precision": [report[k]["precision"] for k in report.keys() if k.isdigit()],
+        "Recall": [report[k]["recall"] for k in report.keys() if k.isdigit()],
+        "F1-Score": [report[k]["f1-score"] for k in report.keys() if k.isdigit()],
+        "Support": [report[k]["support"] for k in report.keys() if k.isdigit()]
+    }).round(4).to_markdown(index=False))
     
     print("\nConfusion Matrix:")
-    print(cm_df)
+    print(cm_df.to_markdown(index=True))
+
 
 def eval_regression(model, X_test, y_test):
     '''
