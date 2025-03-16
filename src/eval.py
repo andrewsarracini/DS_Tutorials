@@ -28,23 +28,29 @@ def setup_logger():
 # Initialize logger
 logger = setup_logger()
 
+import json
+
 def serialize_params(params):
-    ''' Filters, cleans, and serializes model parameters for logging. '''
     relevant_params = {}
     for k, v in params.items():
-        if v is None:
-            continue
         try:
-            json.dumps(v)  
+            json.dumps(v)
             relevant_params[k] = v
-        except (TypeError, OverflowError):
-            relevant_params[k] = str(v)  
+        except (TypeError, OverflowError, ValueError):
+            # Catch more exceptions including nan
+            if isinstance(v, float) and np.isnan(v):
+                relevant_params[k] = 'NaN'
+            else:
+                relevant_params[k] = str(v)
     return relevant_params
 
 def eval_classification(model, X_test, y_test):
     '''
     Evaluates a classification model and prints/logs performance metrics.
     '''
+
+
+
     model_name = type(model.steps[-1][1]).__name__
     y_pred = model.predict(X_test)
 
