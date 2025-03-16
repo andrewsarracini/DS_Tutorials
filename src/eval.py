@@ -49,9 +49,17 @@ def eval_classification(model, X_test, y_test):
     Evaluates a classification model and prints/logs performance metrics.
     '''
 
+    is_pipeline = hasattr(model, 'named_steps')  # True if model is a pipeline
 
+    # Get the classifier for parameter extraction
+    if is_pipeline:
+        classifier = model.named_steps['model']
+        model_name = type(classifier).__name__
+    else:
+        classifier = model
+        model_name = type(model).__name__
 
-    model_name = type(model.steps[-1][1]).__name__
+    # model_name = type(model.steps[-1][1]).__name__
     y_pred = model.predict(X_test)
 
     # Compute metrics
