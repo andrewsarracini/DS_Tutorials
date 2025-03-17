@@ -1,10 +1,12 @@
 import os
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn import pipeline
+from sklearn.model_selection import StratifiedGroupKFold, cross_val_score
 from sklearn.pipeline import Pipeline
+from imblearn.over_sampling import SMOTE
+from sklearn.metrics import make_scorer, f1_score
 from sklearn.preprocessing import StandardScaler
 import joblib
-
 
 
 def train_model(X_train, y_train, models, save_dir='../models'):
@@ -85,3 +87,60 @@ def train_model(X_train, y_train, models, save_dir='../models'):
         trained_models[model_name] = trained_model
 
     return trained_models
+
+def cv_model(X, y, models:dict, apply_smote=False, n_splits=5): 
+    '''
+    Performs cross-validation on given models.
+    
+    Arguments:
+        X -- Features
+        y -- Target variable
+        models (dict) -- Dictionary where keys are model names (str) and values are tuples (model_class, optional params)
+        apply_smote (bool) -- Whether or not to apply SMOTE within each fold (default : False)
+        n_splits (int) -- Number of CV folds (default : 5)
+
+    Returns: 
+        dict: Model names as keys and lists of CV scores as values
+
+    Example Usage: 
+        models = {
+            'RandomForest': (RandomForestClassifier, {'class_weight': 'balanced'}),
+            'XGBoost': (XGBClassifier, None)
+        }
+
+        # Cross-validate models **without** SMOTE
+        cv_scores = cross_validate_model(X, y, models, apply_smote=False)
+
+        # Cross-validate models **with** SMOTE
+        cv_scores_smote = cross_validate_model(X, y, models, apply_smote=True)
+    '''
+
+    cv_results = {}
+    cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=10)
+    scoring = make_scorer(f1_score) 
+
+    print("Running Cross-Validation...")
+    print("=============================")
+
+    for model_name, (model_class, model_params) in models.items():
+        print(f'Cross-Validating {model_name} ({model_class.__name__} with {n_splits}-fold CV...)')
+
+        # Initializing the model:
+        model = model_class(**model_params or {}) 
+
+        # Use SMOTE *only* if specified:
+        if apply_smote:
+            pipeline = Pipeline([
+                ('smote', SMOTE(random_state=10)),
+                ('model', model)
+            ])
+        else:
+            pipeline = model
+
+        # Finally we perform CV:
+        scores = cross_val_score(pipeline, X, y, cv=cv, scoring=scoring)
+        cv_results[model_name] = scores
+
+        print(f"✅ {model_name} CV complete! Mean F1 Score: {scores.mean():.4f}\n")
+
+    return cv_results
