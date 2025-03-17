@@ -61,11 +61,16 @@ def train_model(X_train, y_train, models, save_dir='../models'):
         # Initialize model with params
         model = model_class(**(model_params or {})) 
 
-        # Define pipeline
-        trained_model = Pipeline([
-            ('scaler', StandardScaler()), 
-            ('model', model) 
-        ])
+        # Handle XGBoost separately — no pipeline
+        if model_name == 'XGBoost':
+            model.fit(X_train, y_train)
+            trained_model = model  # Direct model, no pipeline
+        else:
+            trained_model = Pipeline([
+                ('scaler', StandardScaler()), 
+                ('model', model) 
+            ])
+            trained_model.fit(X_train, y_train)
 
         # Actually training the model
         trained_model.fit(X_train, y_train)
@@ -80,5 +85,3 @@ def train_model(X_train, y_train, models, save_dir='../models'):
         trained_models[model_name] = trained_model
 
     return trained_models
-
-
