@@ -7,102 +7,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 import time
 
+from src.helper import save_best_params, load_best_params
+from src.logger_setup import logger 
+from src.helper import stratified_sample, dynamic_param_grid, param_spaces
+
 import os
 import json
-
-# THIS IS INTENTIONALLY OUTSIDE
-# Might make this global later, still deciding
-param_spaces = {
-    "RandomForestClassifier": {
-        "classifier__n_estimators": [50, 100, 200, 300, 500],
-        "classifier__max_depth": [None, 10, 20, 30, 50],
-        "classifier__min_samples_split": [2, 5, 10, 20],
-        "classifier__min_samples_leaf": [1, 2, 5, 10],
-        "classifier__max_features": ["sqrt", "log2", None]
-    },
-    "XGBClassifier": {
-        "classifier__n_estimators": [50, 100, 200, 300],
-        "classifier__max_depth": [3, 6, 9, 12],
-        "classifier__learning_rate": [0.01, 0.05, 0.1, 0.2],
-        "classifier__subsample": [0.5, 0.7, 1.0],
-        "classifier__colsample_bytree": [0.5, 0.7, 1.0]
-    },
-    "LogisticRegression": {
-        "classifier__C": [0.01, 0.1, 1, 10, 100],
-        "classifier__penalty": ["l1", "l2"],
-        "classifier__solver": ["liblinear", "saga"]
-    }
-}
-
-def dynamic_param_grid(model, best_params):
-    '''
-    Refines hyperparameter search speace for GridSearchCV, based on model type
-    
-    Args:
-        model: trained model object (RandomForest, XGBoost, LinearRegression)
-        best_params: best paramters found from RandomizedSearchCV
-        
-    Returns:
-        redefined_param_grid: param grid that is dependent on the `model`
-    '''
-
-    model_name = model.__class__.__name__
-    if model_name not in param_spaces:
-        raise ValueError(f"Model {model_name} is not yet supported by the `grand_tuner`.")
-    
-    refined_grid = {}
-
-    try:
-        # RF -- n_estimators and max_depth
-        if model_name == "RandomForestClassifier":
-            refined_grid = {
-                "classifier__n_estimators": [
-                    max(best_params["classifier__n_estimators"] - 50, 50),  
-                    best_params["classifier__n_estimators"],  
-                    best_params["classifier__n_estimators"] + 50
-                ],
-                "classifier__max_depth": [
-                    best_params["classifier__max_depth"] - 10 if best_params["classifier__max_depth"] else None,
-                    best_params["classifier__max_depth"],
-                    best_params["classifier__max_depth"] + 10 if best_params["classifier__max_depth"] else None
-                ]
-            }
-        
-        # XGB -- n_estimators, learning_rate
-        elif model_name == "XGBClassifier":
-            refined_grid = {
-                "classifier__n_estimators": [
-                    max(best_params["classifier__n_estimators"] - 50, 50),  
-                    best_params["classifier__n_estimators"],  
-                    best_params["classifier__n_estimators"] + 50
-                ],
-                "classifier__learning_rate": [
-                    max(best_params["classifier__learning_rate"] - 0.01, 0.01),
-                    best_params["classifier__learning_rate"],
-                    min(best_params["classifier__learning_rate"] + 0.01, 0.5)
-                ]
-            }
-
-        # LR -- C, penalty
-        elif model_name == "LogisticRegression":
-            refined_grid = {
-                "classifier__C": [
-                    max(best_params["classifier__C"] / 10, 0.001),
-                    best_params["classifier__C"],
-                    min(best_params["classifier__C"] * 10, 1000)
-                ],
-                "classifier__penalty": [best_params["classifier__penalty"]] 
-            }
-    
-    # If all else fails, revert to param_spaces (default) 
-    except KeyError as e:
-        print(f"⚠️ Missing expected param in best_params: {e}")
-        print("Using default grid for fallback.")
-
-        refined_grid = param_spaces[model_name]
-
-    return refined_grid
-
 
 def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20):
     '''
@@ -208,34 +118,3 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     save_best_params(best_params, model.__class__.__name__)
 
     return best_model, best_params, cv_results
-
-def save_best_params(best_params, model_name, save_dir='../tuned_params'):
-    '''
-    Saves best hyperparameters into a file one level back called tuned_params
-
-    Example Usage:
-        save_best_params(best_params, model.__class__.__name__)
-    '''
-
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, f'{model_name}_best_params.json') 
-    with open(save_path, 'w') as f:
-        json.dump(best_params, f, indent=4) 
-    print(f"💾 Saved best params for {model_name} to {save_path}")
-
-def stratified_sample(X, y, sample_frac=0.1, random_state=10):
-    '''
-    Stratified sample of X, y for tuning
-
-    Args: 
-        X: full feature set
-        y: full labels
-        sample_frac: fraction of data used to sample (10%)
-        random_state: reproducibility seed (10) 
-
-    Returns: 
-        X_sample, y_sample
-    '''
-
-    X_sample, y_sample = train_test_split(X, y, train_size=sample_frac, stratify=y, random_state=random_state)
-    return X_sample, y_sample

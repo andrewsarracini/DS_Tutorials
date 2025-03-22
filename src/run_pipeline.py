@@ -1,6 +1,8 @@
 from src.tune import grand_tuner, save_best_params, stratified_sample, param_spaces
 from src.train import train_model, load_best_params
 
+from src.helper import stratified_sample
+
 def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1, **tuner_kwargs):
     """
     Full workflow:
@@ -15,7 +17,7 @@ def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1
     # Instantiate model
     base_model = model_class()
 
-    # Tune on sample
+    # INITIATE THE GRAND TUNER
     best_model, best_params, _ = grand_tuner(
         model=base_model,
         X=X_sample,
@@ -25,9 +27,9 @@ def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1
     )
 
     # Load and train on full data
-    loaded_params = load_best_params(model_name)
+    # loaded_params = load_best_params(model_name)
     trained_models = train_model(X_full, y_full, {
-        model_name: (model_class, loaded_params)
+        model_name: (model_class, best_params)
     })
 
     return trained_models[model_name]

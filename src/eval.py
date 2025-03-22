@@ -8,41 +8,8 @@ from sklearn.metrics import (
 import json
 import os
 
-def setup_logger():
-    """ Sets up a rotating log file to ensure logs remain readable and structured. """
-    
-    log_dir = os.path.join(os.path.dirname(os.path.abspath(os.getcwd())), "logs")
-
-    os.makedirs(log_dir, exist_ok=True)
-
-    log_file = os.path.join(log_dir, "model_eval.log")
-
-    handler = RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=10)
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[handler]
-    )
-    return logging.getLogger("ModelEvaluation")
-
-# Initialize logger
-logger = setup_logger()
-
-import json
-
-def serialize_params(params):
-    relevant_params = {}
-    for k, v in params.items():
-        try:
-            json.dumps(v)
-            relevant_params[k] = v
-        except (TypeError, OverflowError, ValueError):
-            # Catch more exceptions including nan
-            if isinstance(v, float) and np.isnan(v):
-                relevant_params[k] = 'NaN'
-            else:
-                relevant_params[k] = str(v)
-    return relevant_params
+from src.helper import serialize_params
+from src.logger_setup import setup_logger, logger
 
 def eval_classification(model, X_test, y_test):
     '''

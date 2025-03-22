@@ -10,6 +10,8 @@ import joblib
 import os 
 import json
 
+from src.logger_setup import logger
+
 
 def train_model(X_train, y_train, models, save_dir='../models'):
     '''
@@ -89,20 +91,3 @@ def train_model(X_train, y_train, models, save_dir='../models'):
         trained_models[model_name] = trained_model
 
     return trained_models
-
-def load_best_params(model_name, load_dir='../tuned_params'):
-    '''
-    Loads in best params for a given model (model name in file).
-    Makes it so grand_tuner() only has to be used once.
-
-    Sample Usage:
-        best_rf_params = load_best_params('RandomForestClassifier')
-        models = {
-            'RandomForest': (RandomForestClassifier, best_rf_params)
-        }
-
-        trained_models = train_model(X_train_full, y_train_full, models)
-    '''
-    load_path = os.path.join(load_dir, f'{model_name}_best_params.json')
-    with open(load_path, 'r') as f:
-        return json.load(f)
