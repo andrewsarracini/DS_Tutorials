@@ -109,6 +109,7 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     Performs hyperparameter tuning using a two-step approach:
     1. RandomizedSearchCV to explore a broad parameter space
     2. GridSearchCV to fine-tune the best found region
+    ** Saves best params to ../tuned_params
 
     Args:
         model: the classifier to be tuned
@@ -168,6 +169,10 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     # Get best parameters from RandomizedSearch
     best_random_params = random_search.best_params_
     print(f"\n🎲 Best Parameters from RandomizedSearch: {best_random_params}")
+
+    # === Inject all best params into pipeline before GridSearch ===
+    model_specific_params = {k: v for k, v in best_random_params.items() if k.startswith('classifier__')}
+    pipeline.set_params(**model_specific_params)
 
     refined_grid = dynamic_param_grid(model, best_random_params)
     print(f"\n🛠️ Running GridSearchCV with refined parameters: {refined_grid}")
