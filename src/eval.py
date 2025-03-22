@@ -76,7 +76,8 @@ def eval_classification(model, X_test, y_test):
     report = classification_report(y_test, y_pred, output_dict=True)
 
     try:
-        model_params = serialize_params(model.get_params())
+        raw_params = classifier.get_params()
+        model_params = serialize_params(raw_params)
     except Exception as e:
         model_params = "Parameters not available"
         logger.error(f"Error retrieving model parameters: {e}")
