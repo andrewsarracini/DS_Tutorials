@@ -3,7 +3,7 @@ from src.train import train_model
 from src.helper import save_best_params, load_best_params, serialize_params, stratified_sample, param_spaces, dynamic_param_grid
 
 
-def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1, **tuner_kwargs):
+def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1, model_params=None, **tuner_kwargs):
     """
     Full workflow:
     1. Sample data
@@ -15,7 +15,7 @@ def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1
     X_sample, y_sample = stratified_sample(X_full, y_full, sample_frac=sample_frac)
 
     # Instantiate model
-    base_model = model_class()
+    base_model = model_class(**(model_params or {}))
 
     # INITIATE THE GRAND TUNER
     best_model, best_params, _ = grand_tuner(
@@ -27,9 +27,12 @@ def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1
     )
 
     # Load and train on full data
-    # loaded_params = load_best_params(model_name)
+    # Merge custom added model_params + best_params
+    merged_params = (model_params or {}).copy()
+    merged_params.update(best_params)
+
     trained_models = train_model(X_full, y_full, {
-        model_name: (model_class, best_params)
+        model_name: (model_class, merged_params)
     })
 
-    return trained_models[model_name]
+    return trained_models[model_name], best_params
