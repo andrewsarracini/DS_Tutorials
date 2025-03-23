@@ -1,6 +1,7 @@
 import os 
 import json
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split 
 
 # from tune.py
@@ -53,7 +54,7 @@ def serialize_params(params):
 
 
 # from tune.py
-def stratified_sample(X, y, sample_frac=0.1, random_state=10):
+def stratified_sample(X, y, sample_frac=0.1, random_state=10, min_samples_per_class=5):
     '''
     Stratified sample of X, y for tuning
 
@@ -67,7 +68,32 @@ def stratified_sample(X, y, sample_frac=0.1, random_state=10):
         X_sample, y_sample
     '''
 
-    X_sample, y_sample = train_test_split(X, y, train_size=sample_frac, stratify=y, random_state=random_state)
+    # Class distribution in full data
+    class_counts = pd.Series(y).value_counts()
+    num_classes = len(class_counts) 
+
+    # Estimate sample size 
+    expected_sample_size = int(len(X) * sample_frac) 
+
+    # Estimate per-class sample counts: 
+    estimated_per_class = expected_sample_size / num_classes
+
+    # Safeguard: Too small to support all classes
+    if estimated_per_class < min_samples_per_class:
+        raise ValueError(
+            f"Sample too small! Estimated ~{estimated_per_class:.2f} samples per class, "
+            f"but min required is {min_samples_per_class}. "
+            f"Increase sample_frac (currently {sample_frac})."
+        )
+    
+    # If we're good, actually sample:
+    X_sample, _, y_sample, _ = train_test_split(X, y, train_size=sample_frac, stratify=y, random_state=random_state)
+    
+    # Show class balance after sampling
+    sampled_class_counts = pd.Series(y_sample).value_counts()
+    print(f"Sample size: {len(X_sample)} rows")
+    print(f"Class distribution in sample:\n{sampled_class_counts.to_string()}")
+    
     return X_sample, y_sample
 
 
