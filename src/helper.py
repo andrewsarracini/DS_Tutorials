@@ -17,7 +17,8 @@ def save_best_params(best_params, model_name, save_dir='../tuned_params'):
     save_path = os.path.join(save_dir, f'{model_name}_best_params.json') 
     with open(save_path, 'w') as f:
         json.dump(best_params, f, indent=4) 
-    print(f"💾 Saved best params for {model_name} to {save_path}")
+    print(f"💾 Saved best params for {model_name} to {save_path}\n")
+    print('=' * 60, '\n')
 
 # from train.py
 def load_best_params(model_name, load_dir='../tuned_params'):

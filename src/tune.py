@@ -38,12 +38,12 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
 
     if verbose:
         print(f"Starting Grand Tuner | CV: {cv} | Scoring: {scoring}")
-        print(f"Model: {model.__class__.__name__} | SMOTE: {use_smote} | Iterations: {n_iter}")
+        print(f"Model: {model.__class__.__name__} | SMOTE: {use_smote} | Random Iterations: {n_iter}")
         print("="*60, '\n')
 
     if param_grid is None:
         param_grid = param_spaces.get(model.__class__.__name__, {})
-        print(f"{model.__class__.__name__} param grid is None, using default\n")
+        print(f"**{model.__class__.__name__} param grid is None, using default\n")
 
     # Pipeline with optional SMOTE
     steps = []
@@ -104,16 +104,21 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
 
 
     best_model = grid_search.best_estimator_
-    best_params = grid_search.best_params_
+    best_grid_params = grid_search.best_params_
+
+    # Merge all params: RandomSearch + GridSearch overwrite
+    all_best_params = best_random_params.copy()
+    all_best_params.update(best_grid_params)
+
     cv_results = grid_search.cv_results_
 
     print("=" * 50)
     # print(f"\n✅ Best Model Found: {best_model}")
-    print(f"🏆 Best Hyperparameters: {json.dumps(best_params, indent=2)}")
-    print(f"📊 Best {scoring}: {grid_search.best_score_:.4f}\n")
+    print(f"🏆 Best Hyperparameters: {json.dumps(all_best_params, indent=2)}")
+    print(f"📊 Best {scoring}: {grid_search.best_score_:.4f}")
 
     # Helper Function
     # Saves best params to disk for ease of storage
-    save_best_params(best_params, model.__class__.__name__)
+    save_best_params(all_best_params, model.__class__.__name__)
 
-    return best_model, best_params, cv_results
+    return best_model, all_best_params, cv_results
