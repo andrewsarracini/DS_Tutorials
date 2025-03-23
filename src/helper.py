@@ -188,3 +188,13 @@ def dynamic_param_grid(model, best_params):
         refined_grid = param_spaces[model_name]
 
     return refined_grid
+
+# for train.py improvement
+def strip_classifier_prefix(params_dict, prefix='classifier__'):
+    '''
+    Strips prefix "clasifier__" from param keys for raw model instantiation. 
+    '''
+    return {
+        k.replace(prefix, '') if k.startswith(prefix) else k: v
+        for k, v in params_dict.items()
+    }

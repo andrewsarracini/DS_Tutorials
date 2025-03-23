@@ -11,7 +11,7 @@ import os
 import json
 
 from src.logger_setup import logger
-from src.helper import save_best_params, load_best_params
+from src.helper import strip_classifier_prefix
 
 
 def train_model(X_train, y_train, models, save_dir='../models'):
@@ -63,10 +63,14 @@ def train_model(X_train, y_train, models, save_dir='../models'):
     print('=============================') 
 
     for model_name, (model_class, model_params) in models.items():
+        
         print(f'Training {model_name}({model_class.__name__}) with params: {model_params or 'default settings'}...') 
 
+        # Clean params for model init
+        clean_params = strip_classifier_prefix(model_params or {}) 
+
         # Initialize model with params
-        model = model_class(**(model_params or {})) 
+        model = model_class(**clean_params)
 
         # Handle XGBoost separately — no pipeline
         if model_name == 'XGBoost':
