@@ -1,4 +1,4 @@
 {
-    "classifier__max_depth": 40,
+    "classifier__max_depth": 60,
     "classifier__n_estimators": 500
 }

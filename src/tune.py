@@ -14,7 +14,7 @@ from src.helper import stratified_sample, dynamic_param_grid, param_spaces
 import os
 import json
 
-def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20):
+def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20, verbose=True):
     '''
     Performs hyperparameter tuning using a two-step approach:
     1. RandomizedSearchCV to explore a broad parameter space
@@ -36,15 +36,15 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
         best_params: dictionary of best hyperparams
     '''
 
-    print(f"\nStarting Grand Tuner with {cv}-fold Cross-Validation...")
-    print(f"Model: {model.__class__.__name__}")
-    print(f"Scoring metric: {scoring}")
-    print(f"SMOTE Enabled: {use_smote}")
-    print(f"Running RandomizedSearchCV with {n_iter} iterations...")
+    if verbose:
+        print("="*60)
+        print(f"Starting Grand Tuner | CV: {cv} | Scoring: {scoring}")
+        print(f"Model: {model.__class__.__name__} | SMOTE: {use_smote} | Iterations: {n_iter}")
+        print("="*60)
 
     if param_grid is None:
         param_grid = param_spaces.get(model.__class__.__name__, {})
-        print(f"Using default param grid for {model.__class__.__name__}: {param_grid}")
+        print(f"{model.__class__.__name__} param grid is None, using default")
 
     # Pipeline with optional SMOTE
     steps = []
@@ -78,14 +78,14 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
 
     # Get best parameters from RandomizedSearch
     best_random_params = random_search.best_params_
-    print(f"\n🎲 Best Parameters from RandomizedSearch: {best_random_params}")
+    # print(f"\n🎲 Best Parameters from RandomizedSearch: {best_random_params}")
 
     # === Inject all best params into pipeline before GridSearch ===
     model_specific_params = {k: v for k, v in best_random_params.items() if k.startswith('classifier__')}
     pipeline.set_params(**model_specific_params)
 
     refined_grid = dynamic_param_grid(model, best_random_params)
-    print(f"\n🛠️ Running GridSearchCV with refined parameters: {refined_grid}")
+    # print(f"\n🛠️ Running GridSearchCV with refined parameters: {refined_grid}")
 
     # Step 2: GridSearchCV 
     grid_search = GridSearchCV(

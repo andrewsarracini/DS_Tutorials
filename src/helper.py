@@ -54,7 +54,7 @@ def serialize_params(params):
 
 
 # from tune.py
-def stratified_sample(X, y, sample_frac=0.1, random_state=10, min_samples_per_class=5):
+def stratified_sample(X, y, sample_frac=0.1, random_state=10, min_samples_per_class=5, verbose=True):
     '''
     Stratified sample of X, y for tuning
 
@@ -91,8 +91,11 @@ def stratified_sample(X, y, sample_frac=0.1, random_state=10, min_samples_per_cl
     
     # Show class balance after sampling
     sampled_class_counts = pd.Series(y_sample).value_counts()
-    print(f"Sample size: {len(X_sample)} rows")
-    print(f"Class distribution in sample:\n{sampled_class_counts.to_string()}")
+
+    if verbose:
+        print(f"Sampled {len(X_sample)} rows ({sample_frac*100:.1f}%)")
+        print(f"Class distribution:\n{sampled_class_counts.to_string()}")
+        print("="*60)
     
     return X_sample, y_sample
 

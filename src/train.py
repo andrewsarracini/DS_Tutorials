@@ -14,7 +14,7 @@ from src.logger_setup import logger
 from src.helper import strip_classifier_prefix
 
 
-def train_model(X_train, y_train, models, save_dir='../models'):
+def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
     '''
     Trains one or multiple models using an sklearn pipeline.
     *** Requires train/test split to occur beforehand 
@@ -59,12 +59,14 @@ def train_model(X_train, y_train, models, save_dir='../models'):
 
     os.makedirs(save_dir, exist_ok=True)
 
-    print('Training Models...')
-    print('=============================') 
+    if verbose:
+        print(f"[TRAINING] Starting model training...")
 
     for model_name, (model_class, model_params) in models.items():
         
-        print(f'Training {model_name}({model_class.__name__}) with params: {model_params or 'default settings'}...') 
+        if verbose:
+            print(f"→ Training {model_name} with params:")
+            print(json.dumps(model_params, indent=4))
 
         # Clean params for model init
         clean_params = strip_classifier_prefix(model_params or {}) 
@@ -91,8 +93,10 @@ def train_model(X_train, y_train, models, save_dir='../models'):
         save_path = os.path.join(save_dir, f'{model_name}.pkl')
         joblib.dump(trained_model, save_path) 
 
-        print(f"✅ {model_name} training complete! Model saved to {save_path}\n")
-
+        if verbose:
+            print(f"✅ {model_name} trained | Saved to {save_path}")
+            print("="*60)
+            
         trained_models[model_name] = trained_model
 
     return trained_models
