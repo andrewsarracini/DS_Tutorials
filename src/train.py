@@ -60,7 +60,7 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
     os.makedirs(save_dir, exist_ok=True)
 
     if verbose:
-        print(f"[TRAINING] Starting model training...")
+        print(f"[TRAINING] Starting model training...\n")
 
     for model_name, (model_class, model_params) in models.items():
         
@@ -94,9 +94,9 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
         joblib.dump(trained_model, save_path) 
 
         if verbose:
-            print(f"✅ {model_name} trained | Saved to {save_path}")
+            print(f"\n✅ {model_name} trained | Saved to {save_path}")
             print("="*60)
-            
+
         trained_models[model_name] = trained_model
 
     return trained_models

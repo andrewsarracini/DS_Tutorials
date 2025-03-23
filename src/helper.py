@@ -95,7 +95,7 @@ def stratified_sample(X, y, sample_frac=0.1, random_state=10, min_samples_per_cl
     if verbose:
         print(f"Sampled {len(X_sample)} rows ({sample_frac*100:.1f}%)")
         print(f"Class distribution:\n{sampled_class_counts.to_string()}")
-        print("="*60)
+        print("="*60,'\n')
     
     return X_sample, y_sample
 

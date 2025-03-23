@@ -37,14 +37,13 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     '''
 
     if verbose:
-        print("="*60)
         print(f"Starting Grand Tuner | CV: {cv} | Scoring: {scoring}")
         print(f"Model: {model.__class__.__name__} | SMOTE: {use_smote} | Iterations: {n_iter}")
-        print("="*60)
+        print("="*60, '\n')
 
     if param_grid is None:
         param_grid = param_spaces.get(model.__class__.__name__, {})
-        print(f"{model.__class__.__name__} param grid is None, using default")
+        print(f"{model.__class__.__name__} param grid is None, using default\n")
 
     # Pipeline with optional SMOTE
     steps = []
@@ -73,7 +72,7 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     start_random = time.time()
     random_search.fit(X, y)
     end_random = time.time()
-    print(f"⏱️ RandomizedSearchCV completed in {(end_random - start_random)/60:.2f} minutes")
+    print(f"⏱️ RandomizedSearchCV completed in {(end_random - start_random)/60:.2f} minutes\n")
 
 
     # Get best parameters from RandomizedSearch
@@ -101,7 +100,7 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     start_grid = time.time()
     grid_search.fit(X, y)
     end_grid = time.time()
-    print(f"⏱️ GridSearchCV completed in {(end_grid - start_grid)/60:.2f} minutes")
+    print(f"⏱️ GridSearchCV completed in {(end_grid - start_grid)/60:.2f} minutes\n")
 
 
     best_model = grid_search.best_estimator_
@@ -109,9 +108,9 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     cv_results = grid_search.cv_results_
 
     print("=" * 50)
-    print(f"\n✅ Best Model Found: {best_model}")
-    print(f"🏆 Best Hyperparameters: {best_params}")
-    print(f"📊 Best {scoring}: {grid_search.best_score_:.4f}")
+    # print(f"\n✅ Best Model Found: {best_model}")
+    print(f"🏆 Best Hyperparameters: {json.dumps(best_params, indent=2)}")
+    print(f"📊 Best {scoring}: {grid_search.best_score_:.4f}\n")
 
     # Helper Function
     # Saves best params to disk for ease of storage

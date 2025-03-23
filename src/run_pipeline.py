@@ -11,7 +11,7 @@ def tune_and_train_full(model_class, model_name, X_full, y_full, sample_frac=0.1
     3. Save best params
     4. Train final model on full data
     """
-    print(f"\n🔍 Sampling {sample_frac*100:.1f}% of data for tuning...")
+
     X_sample, y_sample = stratified_sample(X_full, y_full, sample_frac=sample_frac)
 
     # Instantiate model
