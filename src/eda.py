@@ -138,6 +138,7 @@ def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabl
     Returns: 
         - selected_feats: list of selected feature names
         - best_alpha: best alpha value chosen by ElasticNetCV
+        
     '''
 
     # Check for imbalanced target class
