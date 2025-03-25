@@ -60,7 +60,7 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
     os.makedirs(save_dir, exist_ok=True)
 
     if verbose:
-        print(f"\n[TRAINING] Starting model training...\n")
+        print(f"[TRAINING] Starting model training...\n")
 
     for model_name, (model_class, model_params) in models.items():
         

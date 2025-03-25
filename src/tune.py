@@ -115,7 +115,7 @@ def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True
     print("=" * 50)
     # print(f"\n✅ Best Model Found: {best_model}")
     print(f"🏆 Best Hyperparameters: {json.dumps(all_best_params, indent=2)}")
-    print(f"📊 Best {scoring}: {grid_search.best_score_:.4f}")
+    print(f"\n📊 Best {scoring}: {grid_search.best_score_:.4f}")
 
     # Helper Function
     # Saves best params to disk for ease of storage
