@@ -85,9 +85,6 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
             ])
             trained_model.fit(X_train, y_train)
 
-        # Actually training the model
-        trained_model.fit(X_train, y_train)
-
         # Trying out joblib! 
         # Save the trained pipeline
         save_path = os.path.join(save_dir, f'{model_name}.pkl')

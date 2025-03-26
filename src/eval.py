@@ -31,11 +31,15 @@ def eval_classification(model, X_test, y_test, threshold=0.5):
         try:
             y_probs = model.predict_proba(X_test)[:, 1]
             y_pred = (y_probs >= threshold).astype(int)
+
+            if threshold != 0.5:
+                print(f"\n🔧 Custom threshold applied: {threshold}")
+                    
         except Exception as e:
-            print(f"⚠️ Error using threshold: {e}")
+            print(f"\n⚠️ Error using threshold: {e}")
             y_pred = model.predict(X_test)
-        else:
-            y_pred = model.predict(X_test)
+    else:
+        y_pred = model.predict(X_test)
 
     # Compute metrics
     accuracy = accuracy_score(y_test, y_pred)
