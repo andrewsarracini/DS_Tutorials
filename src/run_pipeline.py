@@ -15,6 +15,8 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     3. Save best params
     4. Train final model on full data
     """
+    
+    dev_mode = tuner_kwargs.pop("dev_mode", dev_mode)
 
     X_sample, y_sample = stratified_sample(X_train, y_train, sample_frac=sample_frac)
 
