@@ -5,7 +5,8 @@ from src.eval import eval_classification
 
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
-                        X_test=None, y_test=None, **tuner_kwargs): 
+                        X_test=None, y_test=None, dev_mode=False,
+                        **tuner_kwargs): 
     
     """
     Full workflow:
@@ -34,7 +35,11 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     merged_params = (model_params or {}).copy()
     merged_params.update(best_params)
 
-    trained_models = train_model(X_train, y_train, {
+    # DEV_MODE ONLY
+    X_train_final = X_sample if dev_mode else X_train
+    y_train_final = y_sample if dev_mode else y_train
+
+    trained_models = train_model(X_train_final, y_train_final, {
         model_name: (model_class, merged_params)
     })
 
