@@ -1,6 +1,6 @@
 from src.tune import grand_tuner
 from src.train import train_model
-from src.helper import save_best_params, load_best_params, serialize_params, stratified_sample, param_spaces, dynamic_param_grid
+from src.helper import detect_class_imbalance, stratified_sample, detect_class_imbalance
 from src.eval import eval_classification
 
 def tune_and_train_full(model_class, model_name, X_train, y_train,
@@ -41,9 +41,21 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     trained_model = trained_models[model_name]
 
     if X_test is not None and y_test is not None:
-        print(f'\n Running evaluation on test set...\n')
-        eval_classification(trained_model, X_test, y_test)
+        print(f'\n Running evaluation on test set...')
+
+        is_imbalanced, minority_ratio = detect_class_imbalance(y_test)
+        threshold = 0.25 if is_imbalanced else 0.5
+
+        if is_imbalanced:
+            print(f"⚠️ Imbalanced test set detected (Minority class = {minority_ratio:.2%})")
+        else:
+            print(f"Balanced test set detected, using default threshold: {threshold}")
+
+        eval_classification(trained_model, X_test, y_test, threshold)
+
     else: 
         print("⚠️ No test set provided, skipping evaluation.\n")
+
+    
 
     return trained_model, best_params

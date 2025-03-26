@@ -9,9 +9,9 @@ import json
 import os
 
 from src.helper import serialize_params
-from src.logger_setup import setup_logger, logger
+from src.logger_setup import logger
 
-def eval_classification(model, X_test, y_test):
+def eval_classification(model, X_test, y_test, threshold=0.5):
     '''
     Evaluates a classification model and prints/logs performance metrics.
     '''
@@ -26,8 +26,16 @@ def eval_classification(model, X_test, y_test):
         classifier = model
         model_name = type(model).__name__
 
-    # model_name = type(model.steps[-1][1]).__name__
-    y_pred = model.predict(X_test)
+    # If threshold param exists, use probability-based thresholding
+    if hasattr(model, "predict_proba"):
+        try:
+            y_probs = model.predict_proba(X_test)[:, 1]
+            y_pred = (y_probs >= threshold).astype(int)
+        except Exception as e:
+            print(f"⚠️ Error using threshold: {e}")
+            y_pred = model.predict(X_test)
+        else:
+            y_pred = model.predict(X_test)
 
     # Compute metrics
     accuracy = accuracy_score(y_test, y_pred)

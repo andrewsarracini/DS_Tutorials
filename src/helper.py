@@ -202,3 +202,12 @@ def strip_classifier_prefix(params_dict, prefix='classifier__'):
         k.replace(prefix, '') if k.startswith(prefix) else k: v
         for k, v in params_dict.items()
     }
+
+def detect_class_imbalance(y, threshold=0.15):
+    '''
+    Detects class imbalance, up to a toggleable percentage (default 15-85 split)
+    '''
+    counts = np.bincount(y)
+    class_ratios = counts / counts.sum()
+    minority_ratio = min(class_ratios)
+    return minority_ratio < threshold, minority_ratio

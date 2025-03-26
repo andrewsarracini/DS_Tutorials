@@ -3,9 +3,10 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 def setup_logger(log_filename="model_eval.log", log_dir="../logs"):
-    """
+    '''
     Sets up a rotating log file for model evaluation logging.
-    """
+    '''
+    
     abs_log_dir = os.path.abspath(log_dir)
     os.makedirs(abs_log_dir, exist_ok=True)
 
