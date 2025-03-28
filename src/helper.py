@@ -268,5 +268,14 @@ def find_best_threshold(y_true, y_probs, metric='f1', plot=True):
 def map_target_column(df, target_col, positive, negative): 
     '''
     Converts a binary categorical target col to 1 (pos) and 0 (neg) 
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the target column.
+        target_col (str): Name of the column to map.
+        positive (str): Value to map to 1.
+        negative (str): Value to map to 0.
+        
+    Returns:
+        pd.Series: Mapped binary target series.
     '''
     return df[target_col].map({positive:1, negative:0})
