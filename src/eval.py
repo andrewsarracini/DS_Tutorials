@@ -3,10 +3,12 @@ import numpy as np
 import logging
 from logging.handlers import RotatingFileHandler
 from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+    accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report, precision_recall_curve, roc_curve, auc
 )
 import json
 import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 from src.helper import serialize_params
 from src.logger_setup import logger
@@ -132,3 +134,64 @@ def eval_regression(model, X_test, y_test):
         print(f'f{key}: {value:.4f}')
 
     return metrics
+
+# Potting the Threshold Curves
+def plot_threshold_curves(y_true, y_probs, model_name='Model', highlight_threshold=0.25, save_path=None):
+    '''
+    Plots the ROC and Precision-Recall curves with optional annotations
+
+    Args: 
+        y_true: Ground truth binary labels
+        y_probs: Predicted probs of the positive class
+        model_name: Name of the model
+        highlight_threshold: Optional thresh to annotate on both curves
+        save_path: Optional filepath to save the plots
+    '''
+    # Roc Data
+    # fpr -- False Positive Rate 
+    # tpr -- True Positive Rate
+    # roc_thresholds -- differing threshs used to generated fpr, tpr pairs :D 
+
+    # auc(fpr, tpr) calcs total area under the ROC curve.
+    # This is the model's ability to discriminate between classes
+
+    # Reminder: Area Under Curve (AUC) 
+    fpr, tpr, roc_thresholds = roc_curve(y_true, y_probs)
+    roc_auc = auc(fpr, tpr) 
+
+    # PR Data
+    precision, recall, pr_thresholds = precision_recall_curve(y_true, y_probs)
+    pr_auc = auc(recall, precision)
+
+    # Find closest index to highlight thresh
+    idx_roc = np.argmin(np.abs(roc_thresholds - highlight_threshold))
+    idx_pr = np.argmin(np.abs(pr_thresholds - highlight_threshold)) 
+
+    # Plot
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(12,5))
+
+    # ROC Curve
+    ax1.plot(fpr, tpr, label=f'AUC = {roc_auc:.2f}')
+    ax1.plot([0,1], [0,1], linestyle='--', color='gray') # Represents random classification (FPR = TPR)
+    ax1.scatter(fpr[idx_roc], tpr[idx_roc], color='red', label=f'Thresh = {highlight_threshold}')
+    ax1.set_title(f'ROC Curve - {model_name}')
+    ax1.set_xlabel('False Positive Rate')
+    ax1.set_ylabel('True Positive Raet') 
+    ax1.legend()
+
+    ax2.plot(recall, precision, label=f'AUC = {pr_auc:.2f}') 
+    ax2.scatter(recall[idx_pr], precision[idx_pr], color='red', label=f'Thresh = {highlight_threshold}')
+    ax2.set_title(f'Precision-Recall Curve - {model_name}')
+    ax2.set_xlabel('Recall')
+    ax2.set_ylabel('Precision') 
+    ax2.legend()
+
+    fig.suptitle(f"Threshold Analysis for {model_name}", fontsize=14)
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path)
+        print(f'Plot saved to {save_path}')
+    
+    plt.show() 
+    

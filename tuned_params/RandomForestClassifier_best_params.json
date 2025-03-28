@@ -1,5 +1,5 @@
 {
-    "classifier__n_estimators": 150,
+    "classifier__n_estimators": 100,
     "classifier__min_samples_split": 20,
     "classifier__min_samples_leaf": 1,
     "classifier__max_features": null,
