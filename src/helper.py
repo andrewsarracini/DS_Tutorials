@@ -265,17 +265,12 @@ def find_best_threshold(y_true, y_probs, metric='f1', plot=True):
     return best_thresh
 
 # EDA-- prevents data leakage
-def map_target_column(df, target_col, positive, negative): 
+def map_target_column(df, target_col, positive='Yes', negative='No'):
     '''
-    Converts a binary categorical target col to 1 (pos) and 0 (neg) 
-
-    Args:
-        df (pd.DataFrame): DataFrame containing the target column.
-        target_col (str): Name of the column to map.
-        positive (str): Value to map to 1.
-        negative (str): Value to map to 0.
-        
-    Returns:
-        pd.Series: Mapped binary target series.
+    Maps string labels to binary (1 for positive, 0 for negative).
+    Handles capitalization and leading/trailing whitespace.
     '''
-    return df[target_col].map({positive:1, negative:0})
+    return df[target_col].str.strip().str.lower().map({
+        positive.lower(): 1,
+        negative.lower(): 0
+    })
