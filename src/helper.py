@@ -264,11 +264,9 @@ def find_best_threshold(y_true, y_probs, metric='f1', plot=True):
 
     return best_thresh
 
-# Minority Class Finder
-# Currently used in eval
-def get_minority_class(y):
+# EDA-- prevents data leakage
+def map_target_column(df, target_col, positive, negative): 
     '''
-    Very simple helper to find the minority class'
+    Converts a binary categorical target col to 1 (pos) and 0 (neg) 
     '''
-    counts = Counter(y) 
-    return min(counts, key=counts.get) 
+    return df[target_col].map({positive:1, negative:0})
