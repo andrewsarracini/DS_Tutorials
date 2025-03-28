@@ -2,7 +2,11 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split 
+from sklearn.metrics import f1_score, precision_recall_curve
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import seaborn as sns
+from collections import Counter
 
 # from tune.py
 def save_best_params(best_params, model_name, save_dir='../tuned_params'):
@@ -211,3 +215,60 @@ def detect_class_imbalance(y, threshold=0.15):
     class_ratios = counts / counts.sum()
     minority_ratio = min(class_ratios)
     return minority_ratio < threshold, minority_ratio
+
+# Eval-- plugs directly into plot_threshold_curves
+def find_best_threshold(y_true, y_probs, metric='f1', plot=True):
+    '''
+    Finds optimal classification thresh for a given metric (defauly f1)
+
+    Args: 
+        y_true: Ground truth binary labels
+        y_probs: Predicted probs for target class
+        metric: f1 or recall
+        plot: Whether to plot the metric vs thresh curve
+
+    Returns: 
+        best_thresh: Thresh that maximizes f1 (or recall)
+    '''
+
+    thresholds = np.linspace(0.0, 1.0, 100)
+    scores = []
+
+    for t in thresholds: 
+        y_pred = (y_probs >= t).astype(int) 
+        if metric == 'f1':
+            score = f1_score(y_true, y_pred, zero_division=0) 
+        elif metric == 'recall':
+            precision, recall, _ = precision_recall_curve(y_true, y_probs)
+            idx = np.argmin(np.abs(thresholds - t)) 
+            score = recall[idx] if idx < len(recall) else 0
+        else: 
+            raise ValueError('Metric must be f1 or recall')
+        scores.append(score)
+
+    best_idx = np.argmax(scores)
+    best_thresh = thresholds[best_idx]
+
+    if plot:
+        plt.figure(figsize=(8,4))
+        plt.plot(thresholds, scores, label=f'{metric} score') 
+        plt.axvline(best_thresh, color='red', linestyle='--', label=f'Best Threshold = {find_best_threshold:.2f}')
+        plt.xlabel('Threshold') 
+        plt.ylabel(f'{metric.upper()} Score')
+        plt.title(f'{metric.upper()} vs Threshold')
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+
+        plt.show() 
+
+    return best_thresh
+
+# Minority Class Finder
+# Currently used in eval
+def get_minority_class(y):
+    '''
+    Very simple helper to find the minority class'
+    '''
+    counts = Counter(y) 
+    return min(counts, key=counts.get) 
