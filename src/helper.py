@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import f1_score, precision_recall_curve
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -274,3 +275,29 @@ def map_target_column(df, target_col, positive='Yes', negative='No'):
         positive.lower(): 1,
         negative.lower(): 0
     })
+
+# Eval-- model calibration
+def calibrate_model(model, X_val, y_val, method='sigmoid', cv='prefit'):
+    '''
+    Calibrates a classifier's predicted probs using CalibratedClassifierCV
+
+    Args: 
+        model: already fitted classifier 
+        X_calib: feats for calibration
+        y_calib: target lables for calibration
+        method: calibration method ('sigmoid' or 'isotonic')
+        cv = number of cv folds or "prefit"
+
+    Returns: 
+        calibrated_model: Calibrated classifier with predict_proba support
+    '''
+
+    if cv == 'prefit':
+        calibrated_model = CalibratedClassifierCV(base_estimator=model, method=method, cv='prefit')
+        calibrated_model.fit(X_val, y_val)
+    else: 
+        calibrated_model = CalibratedClassifierCV(estimator=model, method=method, cv=5)
+        calibrated_model.fit(X_val, y_val)
+    
+    print(f"✅ Model calibrated using {method} method")
+    return calibrated_model
