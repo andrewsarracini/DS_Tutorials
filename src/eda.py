@@ -125,82 +125,135 @@ def calc_vif(df: pd.DataFrame):
 
 # Under construction, merging lasso_feat_select and elastic_feat_select into feat_select
 
-def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabled=True):
+# def feat_select(df: pd.DataFrame, target:str, imbalance_thresh=0.15, smote_enabled=True):
+#     '''
+#     - Performs automatic feature selection using Elastic Net regression (but searches params that qualify as full lasso or full ridge)
+#     - Handles class imbalance via SMOTE (if it exists)
+
+#     Args: 
+#         df (DataFrame): dataset that has already been OHE
+#         target (str): name of target column
+#         imbalance _thresh: if minority class is below this threshold, apply SMOTE
+
+#     Returns: 
+#         - selected_feats: list of selected feature names
+#         - best_alpha: best alpha value chosen by ElasticNetCV
+        
+#     '''
+
+#     # Check for imbalanced target class
+#     class_counts = np.bincount(df[target])
+#     min_class_ratio = class_counts.min() / class_counts.sum()
+
+#     if min_class_ratio < imbalance_thresh and smote_enabled:
+#         print(f'⚠️ Imbalanced data detected \n(Minority class = {min_class_ratio:.2%}) \nApplying SMOTE...\n')
+#         smote = SMOTE(random_state=10)
+#         X, y = smote.fit_resample(df.drop(columns=[target]), df[target])
+#     else: 
+#         X, y = df.drop(columns=[target]), df[target]
+
+#     original_feat_count = X.shape[1]
+
+#     # Scaling the data
+#     scaler = StandardScaler()
+#     X_scaled = scaler.fit_transform(X)  
+
+#     # pre-alpha work because E-Net is finicky
+#     # Now alpha is tied to signal strength!
+#     min_alpha = (1.e-7) * np.median(np.abs(X_scaled.T @ y)) 
+
+#     # pre-l1_ratio work because E-Net is finicky
+#     # Hopefully this solves the SMOTE-enabled problem of killing all features
+#     # By leaning more towards ridge
+#     if smote_enabled:
+#         l1_ratio = 0.6
+#     else: 
+#         l1_ratio = [0.1, 0.5, 0.9]
+
+#     # ElasticNetCV Regularization
+#     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=10) 
+#     elastic_model = ElasticNetCV(
+#         # alphas = np.logspace(-6, -3, 50), 
+#         alphas = np.geomspace(min_alpha, min_alpha * 100, 50),
+#         l1_ratio = l1_ratio,
+#         cv = cv, 
+#         random_state=10
+#     )
+#     elastic_model.fit(X_scaled, y) 
+
+#     # Finally, feature selection!
+#     selected_feats = X.columns[elastic_model.coef_ != 0].to_list()
+#     selected_feat_count = len(selected_feats)
+
+#     print("ElasticNet Feature Selection Summary")
+#     print("=====================================")
+#     if smote_enabled: 
+#         print('SMOTE enabled')
+#     else: 
+#         print('SMOTE disabled')
+#     print(f"Original feature count: {original_feat_count}")
+#     print(f"Selected feature count: {selected_feat_count} (🔻{original_feat_count - selected_feat_count} trimmed)")
+#     print(f"Best Alpha: {elastic_model.alpha_:.2e}")
+#     print(f"Best L1 Ratio: {elastic_model.l1_ratio_:.2f}")
+#     print(f"Final Selected Features:")
+#     print(selected_feats)
+
+#     print('----------------')
+#     nonzero_count = np.sum(elastic_model.coef_ != 0)
+#     print(f"Non-zero Coefficients: {nonzero_count}/{len(elastic_model.coef_)}")
+#     print("All Coefficients:", elastic_model.coef_)
+
+#     return selected_feats
+
+# --------------------------------------------------------
+
+def feat_select(df_encoded: pd.DataFrame, target, smote_enabled=True, imbal_thresh=0.15):
     '''
-    - Performs automatic feature selection using Elastic Net regression (but searches params that qualify as full lasso or full ridge)
-    - Handles class imbalance via SMOTE (if it exists)
+    Feature selection using ElasticNetCV on an encoded (quickly with get_dummies) df
 
     Args: 
         df (DataFrame): dataset that has already been OHE
         target (str): name of target column
-        imbalance _thresh: if minority class is below this threshold, apply SMOTE
+        smote_enabled: toggle for SMOTE oversampling
+        imbal_thresh: if minority class is below this threshold, apply SMOTE
 
     Returns: 
-        - selected_feats: list of selected feature names
-        - best_alpha: best alpha value chosen by ElasticNetCV
-        
+        selected: List of selected feature names
     '''
 
-    # Check for imbalanced target class
-    class_counts = np.bincount(df[target])
-    min_class_ratio = class_counts.min() / class_counts.sum()
+    X = df_encoded.drop(columns=[target])
+    y = df_encoded[target]
 
-    if min_class_ratio < imbalance_thresh and smote_enabled:
-        print(f'⚠️ Imbalanced data detected \n(Minority class = {min_class_ratio:.2%}) \nApplying SMOTE...\n')
-        smote = SMOTE(random_state=10)
-        X, y = smote.fit_resample(df.drop(columns=[target]), df[target])
-    else: 
-        X, y = df.drop(columns=[target]), df[target]
+    # Check for imbalance
+    class_counts = y.value_counts(normalize=True) 
+    min_class_ratio = class_counts.min()
 
-    original_feat_count = X.shape[1]
+    if smote_enabled and min_class_ratio < imbal_thresh: 
+        print(f"⚠️ Imbalanced data detected ({min_class_ratio:.2%}). Applying SMOTE...\n")
+        X, y = SMOTE(random_state=10).fit_resample(X, y) 
 
-    # Scaling the data
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)  
+    X_scaled = scaler.fit_transform(X) 
 
-    # pre-alpha work because E-Net is finicky
-    # Now alpha is tied to signal strength!
-    min_alpha = (1.e-7) * np.median(np.abs(X_scaled.T @ y)) 
+    min_alpha = 1e-7 * abs((X_scaled.T @ y)).mean()
 
-    # pre-l1_ratio work because E-Net is finicky
-    # Hopefully this solves the SMOTE-enabled problem of killing all features
-    # By leaning more towards ridge
-    if smote_enabled:
-        l1_ratio = 0.6
-    else: 
-        l1_ratio = [0.1, 0.5, 0.9]
-
-    # ElasticNetCV Regularization
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=10) 
     elastic_model = ElasticNetCV(
-        # alphas = np.logspace(-6, -3, 50), 
-        alphas = np.geomspace(min_alpha, min_alpha * 100, 50),
-        l1_ratio = l1_ratio,
-        cv = cv, 
+        alphas = pd.Series(np.geomspace(min_alpha, min_alpha*100, 50)), 
+        l1_ratio=0.6 if smote_enabled else [0.1, 0.5, 0.9],
+        cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=10),
         random_state=10
-    )
-    elastic_model.fit(X_scaled, y) 
+        ) 
+    
+    elastic_model.fit(X_scaled, y)
 
-    # Finally, feature selection!
-    selected_feats = X.columns[elastic_model.coef_ != 0].to_list()
-    selected_feat_count = len(selected_feats)
+    selected = X.columns[elastic_model.coef_ != 0].tolist()
 
-    print("ElasticNet Feature Selection Summary")
-    print("=====================================")
-    if smote_enabled: 
-        print('SMOTE enabled')
-    else: 
-        print('SMOTE disabled')
-    print(f"Original feature count: {original_feat_count}")
-    print(f"Selected feature count: {selected_feat_count} (🔻{original_feat_count - selected_feat_count} trimmed)")
+    print("📌 ElasticNet Feature Selection Summary")
+    print("======================================")
+    print(f"SMOTE enabled: {smote_enabled}")
+    print(f"Selected feature count: {len(selected)} (🔻{X.shape[1] - len(selected)} trimmed)")
     print(f"Best Alpha: {elastic_model.alpha_:.2e}")
     print(f"Best L1 Ratio: {elastic_model.l1_ratio_:.2f}")
-    print(f"Final Selected Features:")
-    print(selected_feats)
+    print("======================================\n")
 
-    print('----------------')
-    nonzero_count = np.sum(elastic_model.coef_ != 0)
-    print(f"Non-zero Coefficients: {nonzero_count}/{len(elastic_model.coef_)}")
-    print("All Coefficients:", elastic_model.coef_)
-
-    return selected_feats
+    return selected
