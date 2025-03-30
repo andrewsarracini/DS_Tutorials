@@ -1,7 +1,7 @@
 {
-    "classifier__n_estimators": 50,
+    "classifier__n_estimators": 450,
     "classifier__min_samples_split": 10,
-    "classifier__min_samples_leaf": 2,
+    "classifier__min_samples_leaf": 1,
     "classifier__max_features": null,
-    "classifier__max_depth": null
+    "classifier__max_depth": 30
 }

@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import f1_score, precision_recall_curve
+from sklearn.metrics import f1_score, precision_recall_curve, log_loss
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -277,7 +277,7 @@ def map_target_column(df, target_col, positive='Yes', negative='No'):
     })
 
 # Eval-- model calibration
-def calibrate_model(model, X_val, y_val, method='sigmoid', cv='prefit'):
+def calibrate_model(model, X_val, y_val, method='sigmoid', cv=None):
     '''
     Calibrates a classifier's predicted probs using CalibratedClassifierCV
 
@@ -286,14 +286,14 @@ def calibrate_model(model, X_val, y_val, method='sigmoid', cv='prefit'):
         X_calib: feats for calibration
         y_calib: target lables for calibration
         method: calibration method ('sigmoid' or 'isotonic')
-        cv = number of cv folds or "prefit"
+        cv = number of cv folds or None (means prefit) 
 
     Returns: 
         calibrated_model: Calibrated classifier with predict_proba support
     '''
 
     if cv == 'prefit':
-        calibrated_model = CalibratedClassifierCV(base_estimator=model, method=method, cv='prefit')
+        calibrated_model = CalibratedClassifierCV(estimator=model, method=method, cv=None)
         calibrated_model.fit(X_val, y_val)
     else: 
         calibrated_model = CalibratedClassifierCV(estimator=model, method=method, cv=5)
@@ -301,3 +301,36 @@ def calibrate_model(model, X_val, y_val, method='sigmoid', cv='prefit'):
     
     print(f"✅ Model calibrated using {method} method")
     return calibrated_model
+
+# Eval-- more model calibration
+def compare_probs(model, calibrated_model, X_val, y_val): 
+    '''
+    Compares predicted probs before and after model calibration
+
+    Also displays predicted prob dist from before and after calibration
+    '''
+    # First get probs
+    pre_probs = model.predict_proba(X_val)[:,1]
+    post_probs = calibrate_model.predict_proba(X_val)[:,1]
+
+    # Summaries
+    print("\n📊 Probability Summary — Before Calibration:")
+    print(pd.Series(pre_probs).describe())
+
+    print("\n📊 Probability Summary — After Calibration:")
+    print(pd.Series(post_probs).describe())
+
+    print(f"\n🔍 Log Loss Before: {log_loss(y_val, pre_probs):.4f}")
+    print(f"🔍 Log Loss After : {log_loss(y_val, post_probs):.4f}")
+
+    # Plot the dists
+    plt.hist(pre_probs, bins=30, alpha=0.5, label='Before Calibration')
+    plt.hist(post_probs, bins=30, alpha=0.5, label='After Calibration')
+    plt.title('Predicted Probability Distribution (Class 1)')
+    plt.xlabel('Probability')
+    plt.ylabel('Count')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    plt.show()
