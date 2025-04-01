@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.feature_selection import mutual_info_classif
-from sklearn.preprocessing import LabelEncoder
+import math
 
 # --- EDA: 7 STEPS ---
 # 1. Data Cleaning and Preprocessing
@@ -26,7 +26,7 @@ def check_missing_vals(df: pd.DataFrame):
 
 def detect_constant_feats(df: pd.DataFrame):
     ''' 
-    Check to find all features with no variation
+    Detects and returns features with only one unique value.
     An alert is triggered if a constant feature is detected 
     '''
     const_feats = [col for col in df.columns if df[col].nunique() == 1] 
@@ -35,4 +35,97 @@ def detect_constant_feats(df: pd.DataFrame):
     else: 
         print(f'\n No constant features detected!') 
 
-# 2. 
+# 2. Get Descriptive Stats
+# Adding this simiply to stay in order for a good EDA! 
+
+# 3. Univariate Analysis
+def plot_dists(df: pd.DataFrame, features: list):
+    ''' 
+    Plots distributions of specified features
+    
+    - If 1-2 features: individual plots
+    - if 3+ features: grid layout
+    '''
+
+    rows = math.ceil(len(features) / 3) # max 3 plots per row
+    cols = min(len(features), 3) # 3 columns for readability
+
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
+    axes = np.array(axes).flatten() 
+
+    # Now onto plot generation
+
+    for i, feature in enumerate(features):
+        sns.histplot(df[feature], kde=True, color='blue', ax=axes[i]) 
+        axes[i].set_title(f'Distribution of {feature}')
+        axes[i].set_xlabel(feature)
+        axes[i].set_ylabel('Count')
+
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+
+# 4. Bivariate Analysis
+def compare_class_means(df: pd.DataFrame, target: str):
+    '''
+    Compares mean values across classes and returns top differentiators 
+
+    Args: 
+        df: Input dataframe
+        target (str): Name of target column
+
+    Returns:
+        top_diff (df): Top differentiating features by mean difference
+    '''
+
+    grouped_means = df.groupby(target).mean().T
+    grouped_means['diff'] = abs(grouped_means[0] - grouped_means[1]) 
+    top_diff = grouped_means.sort_values(by='diff', ascending=False).head(10)
+
+    print(f'\nTop Differentiating Features (mean diff):')
+    print(top_diff[['diff']])
+    return top_diff
+
+# 5. Multivariate Analysis: 
+def compute_mutual_info(df: pd.DataFrame, target: str):
+    ''' 
+    Calculates mutual information scores between features and target
+
+    Args: 
+        df: Input dataframe
+        target (str): Name of target col
+
+    Returns: 
+        mi_series (pd.Series): Mutual info scores
+    '''
+
+    X = df.drop(columns=target)
+    y = df[target]
+
+    mi = mutual_info_classif(X, y, discrete_features='auto', random_state=10)
+    mi_series = pd.Series(mi, index=X.columns).sort_values(ascending=False)
+
+    print(f'\nMutual Information Scores:')
+    print(mi_series.head(10))
+
+    return mi_series
+
+# 6. Visualization
+def plot_top_class_diffs(df: pd.DataFrame, target: str, top_feats):
+    '''
+    Plots boxplots for feats that differ most between classes
+
+    Args: 
+        df: Input df
+        target (str): Target column
+        top_feats (list): List of top differentiating feat names
+    '''
+
+    for feat in top_feats:
+        plt.figure(figsize=(6,3))
+        sns.boxplot(df, target, feat) 
+        plt.title(f'{feat} by {target}') 
+        plt.tight_layout() 
+        plt.show()
