@@ -14,3 +14,25 @@ from sklearn.preprocessing import LabelEncoder
 # 6. Feature Engineering
 # 7. Visualization
 
+# 1. Data Cleaning and Preprocessing
+def check_missing_vals(df: pd.DataFrame): 
+    '''
+    Checks for missing values
+    '''
+    missing = df.isnull().sum()
+    print('\nMissing Values:')
+    print(missing[missing > 0])
+    return missing
+
+def detect_constant_feats(df: pd.DataFrame):
+    ''' 
+    Check to find all features with no variation
+    An alert is triggered if a constant feature is detected 
+    '''
+    const_feats = [col for col in df.columns if df[col].nunique() == 1] 
+    if const_feats > 0: 
+        print(f'\n Constant Features:, {const_feats}')
+    else: 
+        print(f'\n No constant features detected!') 
+
+# 2. 
