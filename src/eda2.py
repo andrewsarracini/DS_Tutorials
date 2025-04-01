@@ -71,6 +71,8 @@ def plot_dists(df: pd.DataFrame, features: list):
 def compare_class_means(df: pd.DataFrame, target: str):
     '''
     Compares mean values across classes and returns top differentiators 
+    Provides insight into potentially informative features
+    Large differences indicate that there's a signal within the data
 
     Args: 
         df: Input dataframe
@@ -92,6 +94,8 @@ def compare_class_means(df: pd.DataFrame, target: str):
 def compute_mutual_info(df: pd.DataFrame, target: str):
     ''' 
     Calculates mutual information scores between features and target
+    MI captures non-linear relationships 
+    Scores that are close to 0 across the board indicate problems
 
     Args: 
         df: Input dataframe
@@ -129,3 +133,20 @@ def plot_top_class_diffs(df: pd.DataFrame, target: str, top_feats):
         plt.title(f'{feat} by {target}') 
         plt.tight_layout() 
         plt.show()
+
+def detect_low_var_feats(df: pd.DataFrame, threshold=0.01):
+    '''
+    Detects features with low variance
+
+    Args: 
+        df: input dataframe
+        threshold (float): Minimum variance threshold
+
+    Returns: 
+        low_var_feats (list): List of low variance feature names
+    '''
+
+    low_var_feats = [col for col in df.columns if df[col].var() < threshold]
+    print(f"\nLow Variance Features (< {threshold}):", low_var_feats)
+
+    return low_var_feats
