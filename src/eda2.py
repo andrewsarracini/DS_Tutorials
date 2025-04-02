@@ -124,6 +124,15 @@ def compute_mutual_info(df: pd.DataFrame, target: str):
     print(f'\nMutual Information Scores:')
     print(mi_series.head(10))
 
+    # Plot mutual info
+    plt.figure(figsize=(8, 5))
+    sns.barplot(x=mi_series.head(15), y=mi_series.head(15).index)
+    plt.title("Top Mutual Information Scores")
+    plt.xlabel("Score")
+    plt.ylabel("Feature")
+    plt.tight_layout()
+    plt.show()
+
     return mi_series
 
 def detect_low_var_feats(df: pd.DataFrame, threshold=0.01):
