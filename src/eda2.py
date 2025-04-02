@@ -88,6 +88,16 @@ def compare_class_means(df: pd.DataFrame, target: str):
 
     print(f'\nTop Differentiating Features (mean diff):')
     print(top_diff[['diff']])
+
+    # Plot top differentiators
+    top_feats = top_diff.index.tolist()
+    for feat in top_feats:
+        plt.figure(figsize=(6, 3))
+        sns.boxplot(data=df, x=target, y=feat)
+        plt.title(f"{feat} by {target}")
+        plt.tight_layout()
+        plt.show()
+
     return top_diff
 
 # 5. Multivariate Analysis: 
@@ -115,24 +125,6 @@ def compute_mutual_info(df: pd.DataFrame, target: str):
     print(mi_series.head(10))
 
     return mi_series
-
-# 6. Visualization
-def plot_top_class_diffs(df: pd.DataFrame, target: str, top_feats):
-    '''
-    Plots boxplots for feats that differ most between classes
-
-    Args: 
-        df: Input df
-        target (str): Target column
-        top_feats (list): List of top differentiating feat names
-    '''
-
-    for feat in top_feats:
-        plt.figure(figsize=(6,3))
-        sns.boxplot(df, target, feat) 
-        plt.title(f'{feat} by {target}') 
-        plt.tight_layout() 
-        plt.show()
 
 def detect_low_var_feats(df: pd.DataFrame, threshold=0.01):
     '''
