@@ -9,6 +9,9 @@ import json
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import log_loss
+
 
 from src.helper import serialize_params
 from src.logger_setup import logger
@@ -195,3 +198,62 @@ def plot_threshold_curves(y_true, y_probs, model_name='Model', highlight_thresho
     
     plt.show() 
     
+    # =============================
+    # Calibration Funcs-- maybe overkill?
+
+def calibrate_model(model, X_val, y_val, method='sigmoid', cv=None):
+    '''
+    Calibrates a classifier's predicted probs using CalibratedClassifierCV
+
+    Args: 
+        model: already fitted classifier 
+        X_calib: feats for calibration
+        y_calib: target lables for calibration
+        method: calibration method ('sigmoid' or 'isotonic')
+        cv = number of cv folds or None (means prefit)
+
+    Returns: 
+        calibrated_model: Calibrated classifier with predict_proba support
+    '''
+
+    if cv == 'prefit':
+        calibrated_model = CalibratedClassifierCV(estimator=model, method=method, cv=None)
+        calibrated_model.fit(X_val, y_val)
+    else: 
+        calibrated_model = CalibratedClassifierCV(estimator=model, method=method, cv=5)
+        calibrated_model.fit(X_val, y_val)
+    
+    print(f"✅ Model calibrated using {method} method")
+    return calibrated_model
+
+def compare_probs(model, calibrated_model, X_val, y_val): 
+    '''
+    Compares predicted probs before and after model calibration
+
+    Also displays predicted prob dist from before and after calibration
+    '''
+    # First get probs
+    pre_probs = model.predict_proba(X_val)[:,1]
+    post_probs = calibrate_model.predict_proba(X_val)[:,1]
+
+    # Summaries
+    print("\n📊 Probability Summary — Before Calibration:")
+    print(pd.Series(pre_probs).describe())
+
+    print("\n📊 Probability Summary — After Calibration:")
+    print(pd.Series(post_probs).describe())
+
+    print(f"\n🔍 Log Loss Before: {log_loss(y_val, pre_probs):.4f}")
+    print(f"🔍 Log Loss After : {log_loss(y_val, post_probs):.4f}")
+
+    # Plot the dists
+    plt.hist(pre_probs, bins=30, alpha=0.5, label='Before Calibration')
+    plt.hist(post_probs, bins=30, alpha=0.5, label='After Calibration')
+    plt.title('Predicted Probability Distribution (Class 1)')
+    plt.xlabel('Probability')
+    plt.ylabel('Count')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    plt.show()
