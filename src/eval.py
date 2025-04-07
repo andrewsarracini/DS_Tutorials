@@ -32,7 +32,8 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
         model_name = type(model).__name__
 
     # If threshold param exists, use probability-based thresholding
-    if hasattr(model, "predict_proba"):
+    # Second check ensures binary classification-- otherwise SKIP thresholding
+    if hasattr(model, "predict_proba") and len(np.unique(y_test)) == 2: 
         try:
             y_probs = model.predict_proba(X_test)[:, 1]
             y_pred = (y_probs >= threshold).astype(int)
@@ -51,6 +52,7 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
         try: 
             y_test = label_encoder.inverse_trainsform(y_test)
             y_pred = label_encoder.inverse_transform(y_pred) 
+            print(f'Decoding with classes:, {label_encoder.classes_}\n')
         except Exception as e: 
             print(f'⚠️ Label decoding failed: {e}')
 
