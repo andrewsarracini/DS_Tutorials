@@ -16,7 +16,7 @@ from sklearn.metrics import log_loss
 from src.helper import serialize_params
 from src.logger_setup import logger
 
-def eval_classification(model, X_test, y_test, threshold=0.5):
+def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None):
     '''
     Evaluates a classification model and prints/logs performance metrics.
     '''
@@ -45,6 +45,14 @@ def eval_classification(model, X_test, y_test, threshold=0.5):
             y_pred = model.predict(X_test)
     else:
         y_pred = model.predict(X_test)
+
+    # Decode if label encoder is provided and labels are int-encoded
+    if label_encoder is not None:
+        try: 
+            y_test = label_encoder.inverse_trainsform(y_test)
+            y_pred = label_encoder.inverse_transform(y_pred) 
+        except Exception as e: 
+            print(f'⚠️ Label decoding failed: {e}')
 
     # Compute metrics
     accuracy = accuracy_score(y_test, y_pred)

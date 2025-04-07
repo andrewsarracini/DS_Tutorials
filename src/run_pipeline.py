@@ -3,6 +3,8 @@ from src.train import train_model
 from src.helper import detect_class_imbalance, stratified_sample, detect_class_imbalance
 from src.eval import eval_classification
 
+from sklearn.preprocessing import LabelEncoder
+
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
                         X_test=None, y_test=None, dev_mode=False,
@@ -58,8 +60,11 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
         else:
             print(f"Balanced test set detected, using default threshold: {threshold}")
 
-        eval_classification(trained_model, X_test, y_test, threshold)
-
+        eval_classification(trained_model, 
+                            X_test, y_test, 
+                            threshold,
+                            label_encoder=tuner_kwargs.get('label_encoder') # Decode labels if provided
+        )
     else: 
         print("⚠️ No test set provided, skipping evaluation.\n")
 
