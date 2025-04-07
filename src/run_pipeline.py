@@ -19,6 +19,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     """
     
     dev_mode = tuner_kwargs.pop("dev_mode", dev_mode)
+    label_encoder = tuner_kwargs.pop("label_encoder", None)  # Extract before grand_tuner()! 
 
     X_sample, y_sample = stratified_sample(X_train, y_train, sample_frac=sample_frac)
 
