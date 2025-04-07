@@ -4,11 +4,12 @@ from src.helper import detect_class_imbalance, stratified_sample, detect_class_i
 from src.eval import eval_classification
 
 from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
                         X_test=None, y_test=None, dev_mode=False,
-                        **tuner_kwargs): 
+                        scoring='f1_weighted', **tuner_kwargs): 
     
     """
     Full workflow:
@@ -16,10 +17,30 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     2. Tune on sample
     3. Save best params
     4. Train final model on full data
+
+    Args:
+        model_class: The estimator class (e.g., RandomForestClassifier)
+        model_name: Name used for saving and reporting
+        X_train: Training features
+        y_train: Training labels
+        sample_frac: Fraction of data to use for tuning (default 0.1)
+        model_params: Initial model parameters (if any)
+        X_test: Optional test features for final eval
+        y_test: Optional test labels for final eval
+        dev_mode: If True, trains on the sample instead of full set
+        scoring: Metric used during tuning ('accuracy', 'f1_weighted', etc.)
+        **tuner_kwargs: Additional parameters passed to tuning functions
+
+    Returns: 
+        trained_model: optimized, trained and ready to predict on new data model
+        best_params: fresh results from grand_tuner's efforts (sent to json as well)
     """
     
     dev_mode = tuner_kwargs.pop("dev_mode", dev_mode)
     label_encoder = tuner_kwargs.pop("label_encoder", None)  # Extract before grand_tuner()! 
+
+    if scoring == 'roc_auc' and len(np.unique(y_train)) > 2: 
+        raise ValueError("'roc_auc' is only valid for binary classification! Use 'accuracy' or 'weighted_f1' for multiclass")
 
     X_sample, y_sample = stratified_sample(X_train, y_train, sample_frac=sample_frac)
 
@@ -32,6 +53,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
         X=X_sample,
         y=y_sample,
         param_grid=None,
+        scoring=scoring,
         **tuner_kwargs
     )
 
@@ -64,7 +86,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
         eval_classification(trained_model, 
                             X_test, y_test, 
                             threshold,
-                            label_encoder=tuner_kwargs.get('label_encoder') # Decode labels if provided
+                            label_encoder=label_encoder
         )
     else: 
         print("⚠️ No test set provided, skipping evaluation.\n")
