@@ -112,16 +112,14 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
     }).round(4).to_markdown(index=False))
 
     print("\nClass-Specific Metrics:")
+    class_keys = sorted([k for k in report.keys() if k not in ('accuracy', 'macro avg', 'weighted avg')])
     print(pd.DataFrame({
-        "Class": list(report.keys())[:-3],  # Exclude avg/total rows
-        "Precision": [report[k]["precision"] for k in report.keys() if k.isdigit()],
-        "Recall": [report[k]["recall"] for k in report.keys() if k.isdigit()],
-        "F1-Score": [report[k]["f1-score"] for k in report.keys() if k.isdigit()],
-        "Support": [report[k]["support"] for k in report.keys() if k.isdigit()]
+        "Class": class_keys,
+        "Precision": [report[k]["precision"] for k in class_keys],
+        "Recall": [report[k]["recall"] for k in class_keys],
+        "F1-Score": [report[k]["f1-score"] for k in class_keys],
+        "Support": [report[k]["support"] for k in class_keys]
     }).round(4).to_markdown(index=False))
-    
-    print("\nConfusion Matrix:")
-    print(cm_df.to_markdown(index=True))
 
 
 def eval_regression(model, X_test, y_test):
