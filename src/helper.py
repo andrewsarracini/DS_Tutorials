@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from sklearn.calibration import CalibratedClassifierCV
+from sklearn.calibration import CalibratedClassifierCV, LabelEncoder
 from sklearn.metrics import f1_score, precision_recall_curve, log_loss
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -211,11 +211,27 @@ def strip_classifier_prefix(params_dict, prefix='classifier__'):
 def detect_class_imbalance(y, threshold=0.15):
     '''
     Detects class imbalance, up to a toggleable percentage (default 15-85 split)
+    04/7 -- Now supports both string and int target labels
+
+    Args: 
+        y (array-like): Class labels (str or int) 
+        threshold (float): Minority class ratio threshold
+
+    Returns: 
+        is_imbalanced (bool): Whether the dataset is imbalanced 
+        minority_ratio (float): Ratio of least-represented class
     '''
+
+    if not np.issubdtype(np.array(y).dtype, np.integer):
+        le = LabelEncoder()
+        y = le.fit_transform(y) 
+
     counts = np.bincount(y)
     class_ratios = counts / counts.sum()
     minority_ratio = min(class_ratios)
-    return minority_ratio < threshold, minority_ratio
+    is_imbalanced = minority_ratio < threshold
+
+    return  is_imbalanced, minority_ratio
 
 # Eval-- plugs directly into plot_threshold_curves
 def find_best_threshold(y_true, y_probs, metric='f1', plot=True):
