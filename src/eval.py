@@ -50,10 +50,9 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
     # Decode if label encoder is provided and labels are int-encoded
     if label_encoder is not None:
         try:
-            print("Label decoder active:")
+            print(f"\nLabel decoder active:")
             print("  y_test unique:", np.unique(y_test))
-            print("  y_pred unique:", np.unique(y_pred))
-            print("  Classes:", label_encoder.classes_, "\n")
+            print("  Classes:", label_encoder.classes_)
 
             y_test = label_encoder.inverse_transform(y_test)
             y_pred = label_encoder.inverse_transform(y_pred)
