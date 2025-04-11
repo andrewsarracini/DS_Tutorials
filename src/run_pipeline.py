@@ -5,6 +5,9 @@ from src.eval import eval_classification
 
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+import pickle
+import json
+import os
 
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
@@ -94,3 +97,40 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     
 
     return trained_model, best_params
+
+# Quick Load-- trying to cut away stupid-long wait times! 
+def quick_load(model_class, model_name, X_train, y_train, force_retrain=False):
+    '''
+    Loads a trained model from .pkl if it exists, or trains from the JSON best params
+    If both are missing *or* retrain is forced, then it trains from scratch via `train_model`
+
+    Returns: 
+        trained_model (sklearn-like): Model is ready for prediction! 
+    '''
+
+    model_path = f'../models/{model_name}.pkl'
+    params_path = f'../tuned_params/{model_name}_best_params.json'
+
+    if os.path.exists(model_path) and not force_retrain: 
+        print(f'📦 Loading existing model from {model_path}')
+        with open(model_path, 'rb') as f:
+            return pickle.load(f) 
+        
+    if os.path.exists(params_path): 
+        print(f'⚙️ Training model using best params from {params_path}') 
+        with open(params_path, 'r') as f:
+            best_params = json.load(f)
+
+        trained_models = train_model(X_train, y_train, {
+            model_name: (model_class, best_params)
+        }) 
+
+        model = trained_models[model_name] 
+
+        with open(model_path, 'wb') as f:
+            pickle.dump(model, f) 
+            print(f'💾 Saved trained model to {model_path}')
+
+        return model
+    
+    raise FileNotFoundError('No model .pkl or param .json found-- please run full pipeline first!')
