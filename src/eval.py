@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import log_loss
+import seaborn as sns
 
 
 from src.helper import serialize_params
@@ -267,4 +268,32 @@ def compare_probs(model, calibrated_model, X_val, y_val):
     plt.grid(True)
     plt.tight_layout()
 
+    plt.show()
+
+def eval_predictions(y_pred, y_true, label_encoder=None): 
+    '''
+    Evaluates raw predicted labels against true labels
+    Optionally decodes if label encoder is provided
+
+    Args: 
+        y_pred (array-like): Predicted labels (str or int) 
+        y_true (array-like): Ground truth labels
+        label_encoder (LabelEncoder, optional): IF used during modeling, will decode y_pred and y_true
+    '''
+
+    if label_encoder: 
+        if hasattr(y_pred[0], '__index__'): # encoded ints
+            y_pred = label_encoder.inverse_transform(y_pred)
+        if hasattr(y_true[0], '__index__'):
+            y_true = label_encoder.inverse_transform(y_true) 
+
+    print('Classification Report') 
+    print(classification_report(y_true, y_pred, digits=3)) 
+
+    cm = confusion_matrix(y_true, y_pred, labels=np.unique(y_true))
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt='d', xticklabels=np.unique(y_true), yticklabels=np.unique(y_true), cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title('Confusion Matrix')
     plt.show()
