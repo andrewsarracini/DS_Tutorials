@@ -12,7 +12,8 @@ import os
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
                         X_test=None, y_test=None, dev_mode=False,
-                        scoring='f1_weighted', **tuner_kwargs): 
+                        scoring='f1_weighted', use_scaler = True, 
+                        **tuner_kwargs): 
     
     """
     Full workflow:
@@ -70,7 +71,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     y_train_final = y_sample if dev_mode else y_train
 
     trained_models = train_model(X_train_final, y_train_final, {
-        model_name: (model_class, merged_params)
+        model_name: (model_class, merged_params, use_scaler)
     })
 
     trained_model = trained_models[model_name]

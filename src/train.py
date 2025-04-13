@@ -56,17 +56,22 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
     '''
 
     trained_models = {}
-
     os.makedirs(save_dir, exist_ok=True)
 
     if verbose:
         print(f"[TRAINING] Starting model training...\n")
 
-    for model_name, (model_class, model_params) in models.items():
+    for model_name, model_tuple in models.items():
+        if len(model_tuple) == 3: 
+            model_class, model_params, use_scaler = model_tuple
+        else: 
+            model_class, model_params = model_tuple
+            use_scaler = True # default to scaling unless specified! 
         
         if verbose:
             print(f"→ Training {model_name} with params:")
             print(json.dumps(model_params, indent=4))
+            print(f'Scaling: {'ON' if use_scaler else 'OFF'}') 
 
         # Clean params for model init
         clean_params = strip_classifier_prefix(model_params or {}) 
@@ -79,14 +84,15 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
             model.fit(X_train, y_train)
             trained_model = model  # Direct model, no pipeline
         else:
-            trained_model = Pipeline([
-                ('scaler', StandardScaler()), 
-                ('model', model) 
-            ])
+            steps = []
+            if use_scaler: 
+                steps.append(('scaler', StandardScaler())) 
+            steps.append(('model', model)) 
+            
+            trained_model = Pipeline(steps) 
             trained_model.fit(X_train, y_train)
 
-        # Trying out joblib! 
-        # Save the trained pipeline
+        # Save the trained pipeline to system
         save_path = os.path.join(save_dir, f'{model_name}.pkl')
         joblib.dump(trained_model, save_path) 
 
