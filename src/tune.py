@@ -223,8 +223,6 @@ def optuna_tuner(model_class, X, y, scoring='f1_weighted',
 
         # Cross-validation
         scores = cross_val_score(model, X, y, scoring=scoring, cv=cv).mean()
-        if verbose:
-            print(f'Trial {trial.number}: {params} => Score: {scores:.4f}')
         return scores
     
     progress_bar = TqdmProgressBar(n_trials)
