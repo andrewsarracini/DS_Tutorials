@@ -196,7 +196,8 @@ def get_optuna_search_space(trial, model_class):
         raise ValueError(f"Optuna tuning not yet supported for {model_name}.")
 
 def optuna_tuner(model_class, X, y, scoring='f1_weighted',
-                 n_trials=50, cv=5, random_state=10, verbose=True):
+                 n_trials=50, cv=5, random_state=10, verbose=True,
+                 study_name=None):
     '''
     Optuna-based tuner for sklearn-compatibile models
 
@@ -226,8 +227,12 @@ def optuna_tuner(model_class, X, y, scoring='f1_weighted',
             print(f'Trial {trial.number}: {params} => Score: {scores:.4f}')
         return scores
     
-    study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+    progress_bar = TqdmProgressBar(n_trials)
+    optuna.logging.set_verbosity(optuna.logging.WARNING)  # Suppress Optuna logs
+    
+    study = optuna.create_study(direction="maximize", study_name=study_name)
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1, callbacks=[progress_bar])
+    progress_bar.close()
 
     best_params = study.best_params
     best_model = model_class(**best_params)
@@ -235,3 +240,15 @@ def optuna_tuner(model_class, X, y, scoring='f1_weighted',
 
     return best_model, best_params, study
 
+# MAKING A PROGRESS BAR! 
+from tqdm import tqdm
+
+class TqdmProgressBar:
+    def __init__(self, total_trials):
+        self.pbar = tqdm(total=total_trials, desc="🔍 Tuning", ncols=100)
+
+    def __call__(self, study, trial):
+        self.pbar.update(1)
+
+    def close(self):
+        self.pbar.close()

@@ -71,7 +71,8 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
         scoring=scoring,
         n_trials=n_trials,
         cv=cv, 
-        verbose=verbose
+        verbose=verbose, 
+        study_name=model_name,
     )
 
     # Load and train on full data
