@@ -126,6 +126,12 @@ param_spaces = {
         "classifier__C": [0.01, 0.1, 1, 10, 100],
         "classifier__penalty": ["l1", "l2"],
         "classifier__solver": ["liblinear", "saga"]
+    }, 
+    "LGBMClassifier": {
+        'classifier__n_estimators': [100, 200, 300],
+        'classifier__max_depth': [5, 10, 15, -1],
+        'classifier__learning_rate': [0.01, 0.05, 0.1],
+        'classifier__num_leaves': [31, 63, 127]
     }
 }
 
@@ -187,6 +193,31 @@ def dynamic_param_grid(model, best_params):
                     min(best_params["classifier__C"] * 10, 1000)
                 ],
                 "classifier__penalty": [best_params["classifier__penalty"]] 
+            }
+
+        # LGBM -- n_estimators, max_depth, learning_rate, num_leaves
+        elif model_name == "LGBMClassifier":
+            refined_grid = {
+                "classifier__n_estimators": [
+                    max(best_params["classifier__n_estimators"] - 100, 50),
+                    best_params["classifier__n_estimators"],
+                    best_params["classifier__n_estimators"] + 100
+                ],
+                "classifier__max_depth": [
+                    best_params["classifier__max_depth"] - 5 if best_params["classifier__max_depth"] not in [None, -1] else -1,
+                    best_params["classifier__max_depth"],
+                    best_params["classifier__max_depth"] + 5 if best_params["classifier__max_depth"] not in [None, -1] else -1
+                ],
+                "classifier__learning_rate": [
+                    round(max(best_params["classifier__learning_rate"] - 0.01, 0.01), 3),
+                    best_params["classifier__learning_rate"],
+                    round(min(best_params["classifier__learning_rate"] + 0.01, 0.3), 3)
+                ],
+                "classifier__num_leaves": [
+                    max(best_params["classifier__num_leaves"] - 16, 8),
+                    best_params["classifier__num_leaves"],
+                    best_params["classifier__num_leaves"] + 16
+                ]
             }
     
     # If all else fails, revert to param_spaces (default) 
