@@ -1,4 +1,5 @@
-from src.tune import grand_tuner
+import optuna
+from src.tune import grand_tuner, optuna_tuner
 from src.train import train_model
 from src.helper import detect_class_imbalance, stratified_sample, detect_class_imbalance
 from src.eval import eval_classification
@@ -13,6 +14,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
                         X_test=None, y_test=None, dev_mode=False,
                         scoring='f1_weighted', use_scaler = True, 
+                        n_trials=50, cv=5, verbose=True,
                         **tuner_kwargs): 
     
     """
@@ -51,14 +53,25 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     # Instantiate model
     base_model = model_class(**(model_params or {}))
 
-    # INITIATE THE GRAND TUNER
-    best_model, best_params, _ = grand_tuner(
-        model=base_model,
+    # # INITIATE THE GRAND TUNER
+    # best_model, best_params, _ = grand_tuner(
+    #     model=base_model,
+    #     X=X_sample,
+    #     y=y_sample,
+    #     param_grid=None,
+    #     scoring=scoring,
+    #     **tuner_kwargs
+    # )
+
+    # INITIATE OPTUNA
+    best_model, best_params, _ = optuna_tuner(
+        model_class=model_class, 
         X=X_sample,
         y=y_sample,
-        param_grid=None,
         scoring=scoring,
-        **tuner_kwargs
+        n_trials=n_trials,
+        cv=cv, 
+        verbose=verbose
     )
 
     # Load and train on full data
