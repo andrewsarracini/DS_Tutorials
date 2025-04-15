@@ -53,15 +53,6 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     # Instantiate model
     base_model = model_class(**(model_params or {}))
 
-    # # INITIATE THE GRAND TUNER
-    # best_model, best_params, _ = grand_tuner(
-    #     model=base_model,
-    #     X=X_sample,
-    #     y=y_sample,
-    #     param_grid=None,
-    #     scoring=scoring,
-    #     **tuner_kwargs
-    # )
 
     # INITIATE OPTUNA
     best_model, best_params, _ = optuna_tuner(
