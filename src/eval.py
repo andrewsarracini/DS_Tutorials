@@ -51,15 +51,14 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
     # Decode if label encoder is provided and labels are int-encoded
     if label_encoder is not None:
         try:
-            if np.issubdtype(np.array(y_test).dtype, np.integer):
+            if isinstance(y_test[0], str):
+                print("⏭️ Label decoding skipped — y_test appears to already be decoded.")
+            else:
                 print(f"\nLabel decoder active:")
                 print("  y_test unique:", np.unique(y_test))
                 print("  Classes:", label_encoder.classes_)
-
                 y_test = label_encoder.inverse_transform(y_test)
                 y_pred = label_encoder.inverse_transform(y_pred)
-            else: 
-                print("⏭️ Label decoding skipped — y_test appears to already be decoded.")
         except Exception as e:
             print(f"⚠️ Label decoding failed: {e}")
 
