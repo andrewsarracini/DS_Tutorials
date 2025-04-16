@@ -383,7 +383,7 @@ def compare_probs(model, calibrated_model, X_val, y_val):
     plt.show()
 
 def get_project_root(): 
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 def resolve_path(*relative_parts):
     return os.path.join(get_project_root(), *relative_parts) 
