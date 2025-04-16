@@ -9,6 +9,7 @@ import pandas as pd
 from lightgbm import LGBMClassifier
 
 from sleep_wave.features.registry import register_all_features
+from src.helper import EEG_FILE
 from src.models.loso import loso_full
 
 def run_feature_experiment_loso(
@@ -72,7 +73,8 @@ if __name__ == '__main__':
     parser.add_argument('--single', action='store_true', help='Run single subject')
     args = parser.parse_args()
 
-    df_edf = pd.read_csv('../../data/eeg_hypno.csv')
+    # df_edf = pd.read_csv('../../data/eeg_hypno.csv')
+    df_edf = pd.read_csv(EEG_FILE)
     all_features = register_all_features() 
     results_log = []
 
