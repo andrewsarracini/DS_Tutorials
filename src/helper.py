@@ -383,13 +383,10 @@ def compare_probs(model, calibrated_model, X_val, y_val):
     plt.show()
 
 def get_project_root(): 
-    '''
-    Get the root directory of the project
-    '''
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 def resolve_path(*relative_parts):
-    '''
-    Resolve a relative path to an absolute path
-    '''
     return os.path.join(get_project_root(), *relative_parts) 
+
+EEG_FILE = resolve_path('data', 'eeg_hypno.csv')
+LOG_DIR = resolve_path('logs') 
