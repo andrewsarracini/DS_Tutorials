@@ -68,7 +68,7 @@ if __name__ == '__main__':
     from datetime import datetime
     
     parser = argparse.ArgumentParser() 
-    parser.add_argument('--subject', type=int, defauly=7242, help='Target subject for LOSO') 
+    parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
     parser.add_argument('--single', action='store_true', help='Run single subject')
     args = parser.parse_args()
 
