@@ -93,9 +93,8 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
             trained_model.fit(X_train, y_train)
 
         # Save the trained pipeline to a nested directory
-        model_dir = os.path.join(save_dir, model_name)
-        os.makedirs(model_dir, exist_ok=True)
-        save_path = os.path.join(model_dir, f'{model_name}.pkl')
+
+        save_path = os.path.join(save_dir, f'{model_name}.pkl')
         joblib.dump(trained_model, save_path) 
 
         if verbose:
