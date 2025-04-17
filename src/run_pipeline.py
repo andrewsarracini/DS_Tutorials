@@ -8,7 +8,8 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import pickle
 import json
-import os
+
+from .paths import MODEL_DIR, TUNED_PARAMS_DIR
 
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,
@@ -114,15 +115,15 @@ def quick_load(model_class, model_name, X_train, y_train, force_retrain=False):
         trained_model (sklearn-like): Model is ready for prediction! 
     '''
 
-    model_path = f'../models/{model_name}.pkl'
-    params_path = f'../tuned_params/{model_name}_best_params.json'
+    model_path = MODEL_DIR / '{model_name}.pkl'
+    params_path = TUNED_PARAMS_DIR / '{model_name}_best_params.json'
 
-    if os.path.exists(model_path) and not force_retrain: 
+    if model_path.exists() and not force_retrain: 
         print(f'📦 Loading existing model from {model_path}')
         with open(model_path, 'rb') as f:
             return pickle.load(f) 
         
-    if os.path.exists(params_path): 
+    if params_path.exists(): 
         print(f'⚙️ Training model using best params from {params_path}') 
         with open(params_path, 'r') as f:
             best_params = json.load(f)
