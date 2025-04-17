@@ -4,14 +4,14 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from pathlib import Path
 import sys 
-import os
 
 from src.run_pipeline import tune_and_train_full
 
-
-
 from matplotlib.colors import ListedColormap
+
+DEFAULT_PLOT_DIR = Path(__file__).absolute().parent.parent / "sleep_plots"
 
 def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame, 
                           label_encoder, label_order=None, n_epochs=50, save_path=None):
@@ -99,7 +99,7 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
 # =========================================================================
 
 def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
-                          save_plot=False, target_subject=None, plot_dir='../sleep_plots/'):
+                          save_plot=False, target_subject=None, plot_dir=DEFAULT_PLOT_DIR):
     '''
     Performs leave-one-subject-out cross-validation
 
@@ -162,8 +162,8 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
 
         # Optional-- plot or save:
         if save_plot: 
-            save_path = os.path.join(plot_dir, f'{model_name}_{left_out}.png')
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plot_dir.mkdir(parents=True, exist_ok=True)
+            save_path = plot_dir / f'{model_name}_{left_out}.png'
         else: 
             save_path = None
 
