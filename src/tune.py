@@ -14,7 +14,6 @@ from src.helper import save_best_params, load_best_params
 from src.logger_setup import logger 
 from src.helper import stratified_sample, dynamic_param_grid, param_spaces
 
-import os
 import json
 
 def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20, verbose=True):
