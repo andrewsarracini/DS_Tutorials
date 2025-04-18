@@ -74,7 +74,7 @@ def main():
     parser = argparse.ArgumentParser() 
     parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
     parser.add_argument('--single', action='store_true', help='Run single feature func only')
-    parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm, rf'], help='Model selection')
+    parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm', 'rf'], help='Model selection')
     args = parser.parse_args()
 
     df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
