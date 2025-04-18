@@ -1,11 +1,16 @@
 # src/models/loso.py
 
+import matplotlib
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from pathlib import Path
-import sys 
+import sys
+
+# Use 'Agg' only in non-CLI mode 
+if not hasattr(sys, 'ps1'):
+    matplotlib.use('Agg')
 
 from src.run_pipeline import tune_and_train_full
 

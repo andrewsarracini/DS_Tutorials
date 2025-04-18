@@ -57,6 +57,12 @@ def run_feature_experiment_loso(
     low_variance = stds[stds < 1e-15]
     if not low_variance.empty:
         raise ValueError(f"⚠️ Near-zero variance in columns: {list(low_variance.index)} from {feature_entry['name']}")
+    
+    # Ensure model_params exists and suppress LightGBM verbosity if applicable
+    if model_class == LGBMClassifier:
+        model_params = {"verbose": -1, "class_weight": "balanced", **(model_params or {})}
+    else:
+        model_params = model_params or {"class_weight": "balanced"}
 
     results = loso_full(
         df=df_feat,
