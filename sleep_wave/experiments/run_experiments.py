@@ -92,8 +92,11 @@ def main():
     results_log = []
 
     features_to_run = [all_features[0]] if args.single else all_features
-    # LGBM is default, select RF to toggle
-    model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
+    # Suppress LightGBM warnings by passing verbosity=-1
+    if args.model == 'lgbm':
+        model_class = lambda **kwargs: LGBMClassifier(verbosity=-1, **kwargs)
+    else:
+        model_class = RandomForestClassifier
 
     for feature_entry in features_to_run:
         model_name = f"{model_class.__name__}_loso_{feature_entry['name'].replace(' ', '_')}"
