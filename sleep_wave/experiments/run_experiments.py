@@ -10,7 +10,6 @@ from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from datetime import datetime
 import argparse
-import os
 
 from sleep_wave.features.registry import register_all_features
 from src.paths import DATA_DIR, LOG_DIR
@@ -23,7 +22,8 @@ def run_feature_experiment_loso(
         model_class, 
         model_name, 
         n_trials=10, 
-        save_plot=True): 
+        save_plot=True,
+        model_params=None): 
     '''
     Applies a feature func, runs LOSO and logs results (RESULT LOG)
 
@@ -64,7 +64,8 @@ def run_feature_experiment_loso(
         model_name=model_name,
         n_trials=n_trials,
         save_plot=save_plot,
-        target_subject=target_subject
+        target_subject=target_subject,
+        model_params=model_params
     )
 
     results['feature_name'] = feature_entry['name']
@@ -84,7 +85,7 @@ def main():
     parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
     parser.add_argument('--single', action='store_true', help='Run single feature func only')
     parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm', 'rf'], help='Model selection')
-    parser.add_argument('--n_trials', type=int, default=10, help='Number of Optuna trials')
+    parser.add_argument('--trials', type=int, default=10, help='Number of Optuna trials')
     args = parser.parse_args()
 
     df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
@@ -92,11 +93,9 @@ def main():
     results_log = []
 
     features_to_run = [all_features[0]] if args.single else all_features
-    # Suppress LightGBM warnings by passing verbosity=-1
-    if args.model == 'lgbm':
-        model_class = lambda **kwargs: LGBMClassifier(verbosity=-1, **kwargs)
-    else:
-        model_class = RandomForestClassifier
+   
+    model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
+    model_params = {'verbosity':-1} if args.model == 'lgbm' else None
 
     for feature_entry in features_to_run:
         model_name = f"{model_class.__name__}_loso_{feature_entry['name'].replace(' ', '_')}"
@@ -108,14 +107,14 @@ def main():
             target_subject=args.subject,
             model_class=model_class,
             model_name=model_name,
-            n_trials=30
+            n_trials=args.trials, 
+            model_params=model_params
         )
 
         results_log.append(result)
 
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
 
     feature_code = features_to_run[0]['name'].lower().split()[0] if args.single else 'all'
     model_code = model_class.__name__.lower()
@@ -123,6 +122,7 @@ def main():
     
     filename = f'loso-{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
 
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(results_log).to_csv(LOG_DIR / filename, index=False)
     print("\n✅ Experiment(s) complete. Results saved.")
 
