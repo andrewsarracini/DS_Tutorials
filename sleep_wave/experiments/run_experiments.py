@@ -7,9 +7,13 @@
 
 import pandas as pd 
 from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
+from datetime import datetime
+import argparse
+import os
 
 from sleep_wave.features.registry import register_all_features
-from src.helper import EEG_FILE
+from src.paths import DATA_DIR, LOG_DIR
 from src.models.loso import loso_full
 
 def run_feature_experiment_loso(
@@ -23,12 +27,12 @@ def run_feature_experiment_loso(
     '''
     Applies a feature func, runs LOSO and logs results (RESULT LOG)
 
-    📤 load df_edf
-    🔁 for each feature:
-        📐 apply feature func to df
-        🧠 run loso_full() on that subject with that model
-        📊 record results
-    💾 save all results to CSV
+        - load df_edf
+        = for each feature:
+            - apply feature func to df
+            - run loso_full() on that subject with that model
+            - record results
+        - save all results to CSV
 
     Parameters: 
         base_df (pd.DataFrame):  df_edf (raw)
@@ -63,22 +67,23 @@ def run_feature_experiment_loso(
 
 # Running the script from the Command Line
 # =========================================================
-if __name__ == '__main__': 
-    import argparse
-    import os 
-    from datetime import datetime
-    
+def main(): 
+    '''
+    CLI entrypoint for running LOSO experiments over one or all engineered feats
+    '''
     parser = argparse.ArgumentParser() 
     parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
-    parser.add_argument('--single', action='store_true', help='Run single subject')
+    parser.add_argument('--single', action='store_true', help='Run single feature func only')
+    parser.add_argument('--model', type=str, default='LGBM', choices=['LGBM, RF'], help='Model selection')
     args = parser.parse_args()
 
-    # df_edf = pd.read_csv('../../data/eeg_hypno.csv')
-    df_edf = pd.read_csv(EEG_FILE)
+    df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
     all_features = register_all_features() 
     results_log = []
 
     features_to_run = [all_features[0]] if args.single else all_features
+    # LGBM is default, select RF to toggle
+    model_class = LGBMClassifier if args.model == 'LGBM' else RandomForestClassifier
 
     for feature_entry in features_to_run:
         model_class = LGBMClassifier  # swapable
@@ -98,6 +103,16 @@ if __name__ == '__main__':
 
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    os.makedirs("logs", exist_ok=True)
-    pd.DataFrame(results_log).to_csv(f"logs/loso_feature_results_{timestamp}.csv", index=False)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+    feature_code = features_to_run[0]['name'].lower().split()[0] if args.single else 'all'
+    model_code = model_class.__name__.lower()
+    subject_code = f"s{args.subject}"
+    
+    filename = f'loso-{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
+
+    pd.DataFrame(results_log).to_csv(LOG_DIR / filename, index=False)
     print("\n✅ Experiment(s) complete. Results saved.")
+
+if __name__ == '__main__':
+    main()
