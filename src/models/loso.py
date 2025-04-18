@@ -99,7 +99,8 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
 # =========================================================================
 
 def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
-                          save_plot=False, target_subject=None, plot_dir=DEFAULT_PLOT_DIR):
+                          save_plot=False, target_subject=None, plot_dir=DEFAULT_PLOT_DIR,
+                          model_params=None):
     '''
     Performs leave-one-subject-out cross-validation
 
@@ -147,7 +148,7 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
             y_train=y_train,
             X_test=X_test,
             y_test=y_test, 
-            model_params={'class_weight': 'balanced'},
+            model_params=model_params or {'class_weight': 'balanced'},
             sample_frac=0.9,
             scoring='f1_weighted',
             use_scaler=False,
