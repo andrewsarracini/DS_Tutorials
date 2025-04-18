@@ -74,7 +74,7 @@ def main():
     parser = argparse.ArgumentParser() 
     parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
     parser.add_argument('--single', action='store_true', help='Run single feature func only')
-    parser.add_argument('--model', type=str, default='LGBM', choices=['LGBM, RF'], help='Model selection')
+    parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm, rf'], help='Model selection')
     args = parser.parse_args()
 
     df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
@@ -83,10 +83,9 @@ def main():
 
     features_to_run = [all_features[0]] if args.single else all_features
     # LGBM is default, select RF to toggle
-    model_class = LGBMClassifier if args.model == 'LGBM' else RandomForestClassifier
+    model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
 
     for feature_entry in features_to_run:
-        model_class = LGBMClassifier  # swapable
         model_name = f"{model_class.__name__}_loso_{feature_entry['name'].replace(' ', '_')}"
 
         print(f"\n🔁 Running: {feature_entry['name']} on subject {args.subject}")
