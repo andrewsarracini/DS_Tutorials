@@ -48,6 +48,14 @@ def run_feature_experiment_loso(
     '''
     # Apply feature transformation: 
     df_feat = feature_entry['func'](df.copy())
+    
+    # Sanity check before training
+    if df_feat.isna().any().any():
+        raise ValueError(f"⚠️ NaNs detected after applying {feature_entry['name']}")
+
+    stds = df_feat.drop(columns=['label', 'subject_id'], errors='ignore').std()
+    if (stds < 1e-10).any():
+        raise ValueError(f"⚠️ Near-zero variance detected in features from {feature_entry['name']}")
 
     results = loso_full(
         df=df_feat,
