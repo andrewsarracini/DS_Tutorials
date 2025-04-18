@@ -22,7 +22,7 @@ def run_feature_experiment_loso(
         target_subject,
         model_class, 
         model_name, 
-        n_trials=30, 
+        n_trials=10, 
         save_plot=True): 
     '''
     Applies a feature func, runs LOSO and logs results (RESULT LOG)
@@ -84,6 +84,7 @@ def main():
     parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
     parser.add_argument('--single', action='store_true', help='Run single feature func only')
     parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm', 'rf'], help='Model selection')
+    parser.add_argument('--n_trials', type=int, default=10, help='Number of Optuna trials')
     args = parser.parse_args()
 
     df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
