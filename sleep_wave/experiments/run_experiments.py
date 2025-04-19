@@ -126,7 +126,7 @@ def main():
     model_code = model_class.__name__.lower()
     subject_code = f"s{args.subject}"
     
-    filename = f'loso-{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
+    filename = f'{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(results_log).to_csv(LOG_DIR / filename, index=False)

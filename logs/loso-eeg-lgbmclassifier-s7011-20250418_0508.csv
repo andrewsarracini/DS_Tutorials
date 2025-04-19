@@ -1,0 +1,6 @@
+7011,feature_name,notes,target_subject,model_used
+"{'model': Pipeline(steps=[('model',
+                 LGBMClassifier(class_weight='balanced',
+                                learning_rate=0.1633455936088132, max_depth=14,
+                                n_estimators=450, num_leaves=77, verbose=-1,
+                                verbosity=-1))]), 'best_params': {'n_estimators': 450, 'max_depth': 14, 'learning_rate': 0.1633455936088132, 'num_leaves': 77}, 'label_encoder': LabelEncoder()}",EEG band lag-1 and lag-2,Adds 1- and 2-epoch lag feats for each band,7011,LGBMClassifier
