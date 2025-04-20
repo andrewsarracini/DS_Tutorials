@@ -185,6 +185,6 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
             save_path=save_path
         )
 
-    return results
+        return trained_model, best_params, final_metrics
 
     
