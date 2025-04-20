@@ -42,6 +42,7 @@ def run_feature_experiment_loso(
         model_name (str): Name for model tracking
         n_trials (int): Number of trials for Optuna
         save_plot (bool): Whether or not to save plots
+        model_params (dict): Optional kwargs to pass into model constructor
 
     Returns: 
         results (dict): Dictionary with feature metadata
@@ -74,12 +75,18 @@ def run_feature_experiment_loso(
         model_params=model_params
     )
 
-    results['feature_name'] = feature_entry['name']
-    results['notes'] = feature_entry.get('notes', '')
-    results['target_subject'] = target_subject
-    results['model_used'] = model_class.__name__
-
-    return results
+    # Flatten to long format with performance-centric data
+    return {
+        'feature_name': feature_entry['name'],
+        'notes': feature_entry.get('notes', ''),
+        'target_subject': target_subject,
+        'model_used': model_class.__name__,
+        'accuracy': results.get('accuracy'),
+        'weighted_f1': results.get('weighted_f1'),
+        'precision': results.get('precision'),
+        'recall': results.get('recall'),
+        'n_trials': n_trials
+    }
 
 # Running the script from the Command Line
 # =========================================================
@@ -117,13 +124,12 @@ def main():
             model_params=model_params
         )
 
-        results_flat = pd.json_normalize(result)
-        results_log.append(results_flat)
+        results_log.append(result)
 
     # Save results
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    timestamp = datetime.now().strftime("%Y%m%d")
 
-    feature_code = features_to_run[0]['name'].lower().split()[0] if args.single else 'all'
+    feature_code = features_to_run[0]['name'].lower().split()[0] if args.single else 'all_feats'
     model_code = model_class.__name__.lower()
     subject_code = f"s{args.subject}"
     

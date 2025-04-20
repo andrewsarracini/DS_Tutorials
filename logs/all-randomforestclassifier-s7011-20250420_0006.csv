@@ -1,0 +1,5 @@
+feature_name,notes,target_subject,model_used,7011.model,7011.best_params.n_estimators,7011.best_params.max_depth,7011.best_params.min_samples_split,7011.best_params.min_samples_leaf,7011.best_params.max_features,7011.label_encoder
+EEG band lag-1 and lag-2,Adds 1- and 2-epoch lag feats for each band,7011,RandomForestClassifier,"Pipeline(steps=[('model',
+                 RandomForestClassifier(class_weight='balanced', max_depth=40,
+                                        min_samples_leaf=3, min_samples_split=3,
+                                        n_estimators=300))])",300,40,3,3,sqrt,LabelEncoder()
