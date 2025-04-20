@@ -65,7 +65,7 @@ def run_feature_experiment_loso(
     else:
         model_params = model_params or {"class_weight": "balanced"}
 
-    results = loso_full(
+    loso_result, _, final_metrics = loso_full(
         df=df_feat,
         model_class=model_class,
         model_name=model_name,
@@ -75,16 +75,20 @@ def run_feature_experiment_loso(
         model_params=model_params
     )
 
-    # Flatten to long format with performance-centric data
+    # Grab subject-specific values
+    subj = target_subject
+    subj_results = loso_result[subj]
+    final_metrics = subj_results.get('final_metrics', {})
+
     return {
         'feature_name': feature_entry['name'],
         'notes': feature_entry.get('notes', ''),
         'target_subject': target_subject,
         'model_used': model_class.__name__,
-        'accuracy': results.get('accuracy'),
-        'weighted_f1': results.get('weighted_f1'),
-        'precision': results.get('precision'),
-        'recall': results.get('recall'),
+        'accuracy': final_metrics.get('accuracy'),
+        'weighted_f1': final_metrics.get('weighted_f1'),
+        'precision': final_metrics.get('precision'),
+        'recall': final_metrics.get('recall'),
         'n_trials': n_trials
     }
 
@@ -127,10 +131,9 @@ def main():
         results_log.append(result)
 
     # Save results
-    timestamp = datetime.now().strftime("%Y%m%d")
-
-    feature_code = features_to_run[0]['name'].lower().split()[0] if args.single else 'all_feats'
-    model_code = model_class.__name__.lower()
+    timestamp = datetime.now().strftime("%m%d")
+    feature_code = 'single' if args.single else 'allfeats'
+    model_code = 'lgbm' if args.model == 'lgbm' else 'rf' 
     subject_code = f"s{args.subject}"
     
     filename = f'{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
