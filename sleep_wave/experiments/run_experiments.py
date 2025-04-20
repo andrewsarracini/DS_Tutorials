@@ -117,7 +117,8 @@ def main():
             model_params=model_params
         )
 
-        results_log.append(result)
+        results_flat = pd.json_normalize(result)
+        results_log.append(results_flat)
 
     # Save results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
@@ -129,7 +130,7 @@ def main():
     filename = f'{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(results_log).to_csv(LOG_DIR / filename, index=False)
+    pd.concat(results_log, ignore_index=True).to_csv(LOG_DIR / filename, index=False)
     print("\n✅ Experiment(s) complete. Results saved.")
 
 if __name__ == '__main__':
