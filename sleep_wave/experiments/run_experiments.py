@@ -65,7 +65,7 @@ def run_feature_experiment_loso(
     else:
         model_params = model_params or {"class_weight": "balanced"}
 
-    loso_result, _, final_metrics = loso_full(
+    loso_result, best_params, final_metrics = loso_full(
         df=df_feat,
         model_class=model_class,
         model_name=model_name,
