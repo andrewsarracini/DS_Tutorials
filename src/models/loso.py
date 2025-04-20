@@ -146,7 +146,7 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
         X_train = df_train.drop(columns=['label'])
         X_test = df_test.drop(columns=['label']) 
 
-        trained_model, best_params = tune_and_train_full(
+        trained_model, best_params, final_metrics = tune_and_train_full(
             model_class=model_class,
             model_name=f"{model_name}_{left_out}",
             X_train=X_train,
@@ -161,10 +161,12 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
             label_encoder=le)
         
         results[left_out] = {
-            'model' : trained_model,
-            'best_params' : best_params, 
-            'label_encoder' : le,
-        }
+            "model": trained_model,
+            "best_params": best_params,
+            "label_encoder": le,
+            **{k: final_metrics[k] for k in ("accuracy", "precision", "recall", "weighted_f1")},
+            "all_metrics": final_metrics
+}
 
         # Optional-- plot or save:
         if save_plot: 

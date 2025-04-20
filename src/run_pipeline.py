@@ -93,7 +93,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
         else:
             print(f"Balanced test set detected, using default threshold: {threshold}")
 
-        eval_classification(trained_model, 
+        final_metrics = eval_classification(trained_model, 
                             X_test, y_test, 
                             threshold,
                             label_encoder=label_encoder
@@ -103,7 +103,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
 
     
 
-    return trained_model, best_params
+    return trained_model, best_params, final_metrics
 
 # Quick Load-- trying to cut away stupid-long wait times! 
 def quick_load(model_class, model_name, X_train, y_train, force_retrain=False):

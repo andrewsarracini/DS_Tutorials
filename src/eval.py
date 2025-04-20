@@ -17,7 +17,8 @@ import seaborn as sns
 from src.helper import serialize_params
 from src.logger_setup import logger
 
-def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None):
+def eval_classification(model, X_test, y_test, threshold=0.5,
+                         label_encoder=None, verbose=True):
     '''
     Evaluates a classification model and prints/logs performance metrics.
     '''
@@ -52,15 +53,18 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
     if label_encoder is not None:
         try:
             if isinstance(y_test[0], str):
-                print("⏭️ Label decoding skipped — y_test appears to already be decoded.")
+                if verbose:
+                    print("⏭️ Label decoding skipped — y_test appears to already be decoded.")
             else:
-                print(f"\nLabel decoder active:")
-                print("  y_test unique:", np.unique(y_test))
-                print("  Classes:", label_encoder.classes_)
+                if verbose:
+                    print(f"\nLabel decoder active:")
+                    print("  y_test unique:", np.unique(y_test))
+                    print("  Classes:", label_encoder.classes_)
                 y_test = label_encoder.inverse_transform(y_test)
                 y_pred = label_encoder.inverse_transform(y_pred)
         except Exception as e:
-            print(f"⚠️ Label decoding failed: {e}")
+            if verbose:
+                print(f"⚠️ Label decoding failed: {e}")
 
     # Compute metrics
     accuracy = accuracy_score(y_test, y_pred)
@@ -79,7 +83,7 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
         raw_params = classifier.get_params()
         model_params = serialize_params(raw_params)
     except Exception as e:
-        model_params = "Parameters not available"
+        model_params = {}
         logger.error(f"Error retrieving model parameters: {e}")
 
     log_message = (
@@ -102,27 +106,37 @@ def eval_classification(model, X_test, y_test, threshold=0.5, label_encoder=None
         logger.error(f"Error writing to log file: {e}")
         print(log_message)  # Print to console as a fallback
 
-    # Print results for readability
-    print(f"\nEvaluating Model: {model_name}")
-    print("Hyperparameters:")
-    print(json.dumps(model_params, indent=4))  
-    
-    print("\nOverall Metrics:")
-    print(pd.DataFrame({
-        "Metric": ["Accuracy", "Weighted Precision", "Weighted Recall", "Weighted F1-Score"],
-        "Score": [accuracy, precision, recall, f1]
-    }).round(4).to_markdown(index=False))
+    if verbose:
+        # Print results for readability
+        print(f"\nEvaluating Model: {model_name}")
+        print("Hyperparameters:")
+        print(json.dumps(model_params, indent=4))  
+        
+        print("\nOverall Metrics:")
+        print(pd.DataFrame({
+            "Metric": ["Accuracy", "Weighted Precision", "Weighted Recall", "Weighted F1-Score"],
+            "Score": [accuracy, precision, recall, f1]
+        }).round(4).to_markdown(index=False))
 
-    print("\nClass-Specific Metrics:")
-    class_keys = sorted([k for k in report.keys() if k not in ('accuracy', 'macro avg', 'weighted avg')])
-    print(pd.DataFrame({
-        "Class": class_keys,
-        "Precision": [report[k]["precision"] for k in class_keys],
-        "Recall": [report[k]["recall"] for k in class_keys],
-        "F1-Score": [report[k]["f1-score"] for k in class_keys],
-        "Support": [report[k]["support"] for k in class_keys]
-    }).round(4).to_markdown(index=False))
+        print("\nClass-Specific Metrics:")
+        class_keys = sorted([k for k in report.keys() if k not in ('accuracy', 'macro avg', 'weighted avg')])
+        print(pd.DataFrame({
+            "Class": class_keys,
+            "Precision": [report[k]["precision"] for k in class_keys],
+            "Recall": [report[k]["recall"] for k in class_keys],
+            "F1-Score": [report[k]["f1-score"] for k in class_keys],
+            "Support": [report[k]["support"] for k in class_keys]
+        }).round(4).to_markdown(index=False))
 
+    return {
+        "model_name": model_name,
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "weighted_f1": f1,
+        "model_params": model_params, 
+        "confusion_matrix": cm_df, 
+        "report": report        }
 
 def eval_regression(model, X_test, y_test):
     '''
