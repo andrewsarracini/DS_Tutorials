@@ -136,7 +136,7 @@ def main():
     filename = f'{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    pd.concat(results_log, ignore_index=True).to_csv(LOG_DIR / filename, index=False)
+    pd.DataFrame(results_log, ignore_index=True).to_csv(LOG_DIR / filename, index=False)
     print("\n✅ Experiment(s) complete. Results saved.")
 
 if __name__ == '__main__':
