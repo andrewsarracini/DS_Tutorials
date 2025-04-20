@@ -75,11 +75,6 @@ def run_feature_experiment_loso(
         model_params=model_params
     )
 
-    # Grab subject-specific values
-    subj = target_subject
-    subj_results = loso_result[subj]
-    final_metrics = subj_results.get('final_metrics', {})
-
     return {
         'feature_name': feature_entry['name'],
         'notes': feature_entry.get('notes', ''),
