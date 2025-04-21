@@ -128,6 +128,12 @@ def eval_classification(model, X_test, y_test, threshold=0.5,
             "Support": [report[k]["support"] for k in class_keys]
         }).round(4).to_markdown(index=False))
 
+    per_class_f1 = {
+        label: report[label]['f1-score']
+        for label in report 
+        if label not in ('accuracy', 'macro avg', 'weighted avg')
+    }
+
     return {
         "model_name": model_name,
         "accuracy": accuracy,
@@ -136,7 +142,9 @@ def eval_classification(model, X_test, y_test, threshold=0.5,
         "weighted_f1": f1,
         "model_params": model_params, 
         "confusion_matrix": cm_df, 
-        "report": report        }
+        "report": report,
+        'per_class_f1': per_class_f1,
+        }
 
 def eval_regression(model, X_test, y_test):
     '''

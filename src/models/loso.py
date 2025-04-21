@@ -164,9 +164,14 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
             "model": trained_model,
             "best_params": best_params,
             "label_encoder": le,
-            **{k: final_metrics[k] for k in ("accuracy", "precision", "recall", "weighted_f1")},
+            **{k: final_metrics.get(k) for k in ("accuracy", "precision", "recall", "weighted_f1")},
+            **{
+                f"{cls}_f1": score
+                for cls, score in final_metrics.get("per_class_f1", {}).items()
+            },
             "all_metrics": final_metrics
-}
+        }
+
 
         # Optional-- plot or save:
         if save_plot: 
