@@ -84,6 +84,13 @@ def run_feature_experiment_loso(
         'weighted_f1': final_metrics.get('weighted_f1'),
         'precision': final_metrics.get('precision'),
         'recall': final_metrics.get('recall'),
+        # Looks inside final_metrics dict (from eval_classification) 
+        # for the sub-dict; per_class_f1
+        # gets weighted_f1 for each class
+        **{
+            f"{cls}_f1": final_metrics.get("per_class_f1", {}).get(cls)
+            for cls in ("N1", "N2", "N3", "REM", "Wake")
+        },
         'n_trials': n_trials
     }
 

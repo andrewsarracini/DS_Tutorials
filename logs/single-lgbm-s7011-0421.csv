@@ -1,0 +1,2 @@
+feature_name,notes,target_subject,model_used,accuracy,weighted_f1,precision,recall,n_trials
+EEG band lag-1 and lag-2,Adds 1- and 2-epoch lag feats for each band,7011,LGBMClassifier,0.7211009174311926,0.706168537038328,0.7161113389317398,0.7211009174311926,5
