@@ -148,7 +148,7 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
 
         trained_model, best_params, final_metrics = tune_and_train_full(
             model_class=model_class,
-            model_name=f"{model_name}_{left_out}",
+            model_name=f"{model_name}_{left_out}", # Noting that this is here...
             X_train=X_train,
             y_train=y_train,
             X_test=X_test,

@@ -8,7 +8,7 @@ def register_all_features():
     '''
     return [
         {
-            'name': 'EEG band lag-1 and lag-2',
+            'name': 'Band lag-1 lag-2',
             'func': feat_bandpower_lags,
             'notes': 'Adds 1- and 2-epoch lag feats for each band'
         }

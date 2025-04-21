@@ -92,7 +92,7 @@ def train_model(X_train, y_train, models, verbose=True):
 
         if verbose:
             # print(f"\n✅ {model_name} trained | Saved to {save_path}")
-            print(f'\n ✅ {model_name} Trained!')
+            print(f'\n✅ {model_name} Trained!')
             print("="*60)
 
         trained_models[model_name] = trained_model

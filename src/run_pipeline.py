@@ -93,7 +93,7 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     joblib.dump(trained_model, save_path) 
     
     if verbose: 
-        print(f'✅ {model_name} trained | Saved to {save_path}')
+        print(f'✅ Saved to {save_path}')
 
     if X_test is not None and y_test is not None:
         print(f'\n Running evaluation on test set...')
