@@ -117,7 +117,7 @@ def main():
     model_params = {'verbosity':-1} if args.model == 'lgbm' else None
 
     for feature_entry in features_to_run:
-        model_name = f"{model_class.__name__}_loso_{feature_entry['name'].replace(' ', '_')}"
+        model_name = f"{model_class.__name__}_{feature_entry['name'].replace(' ', '_')}"
 
         print(f"\n🔁 Running: {feature_entry['name']} on subject {args.subject}")
         result = run_feature_experiment_loso(

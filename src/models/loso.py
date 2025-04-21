@@ -183,7 +183,7 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
         plot_subject_sequence(
             subject_id = left_out,
             model = trained_model,
-            model_name = f'{model_name}_{left_out}',
+            model_name = f'{model_name}_s{left_out}',
             df = df, 
             label_encoder= le, 
             n_epochs= len(df_test),
