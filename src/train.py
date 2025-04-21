@@ -12,9 +12,9 @@ import json
 
 from src.logger_setup import logger
 from src.helper import strip_classifier_prefix
+from src.paths import MODEL_DIR
 
-
-def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
+def train_model(X_train, y_train, models, verbose=True):
     '''
     Trains one or multiple models using an sklearn pipeline.
     *** Requires train/test split to occur beforehand 
@@ -56,7 +56,6 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
     '''
 
     trained_models = {}
-    os.makedirs(save_dir, exist_ok=True)
 
     if verbose:
         print(f"[TRAINING] Starting model training...\n")
@@ -92,9 +91,14 @@ def train_model(X_train, y_train, models, save_dir='../models', verbose=True):
             trained_model = Pipeline(steps) 
             trained_model.fit(X_train, y_train)
 
-        # Save the trained pipeline to a nested directory
+        # Ensure model directory exists
+        MODEL_DIR.mkdir(parents=True, exist_ok=True) 
 
-        save_path = os.path.join(save_dir, f'{model_name}.pkl')
+        # Simplifying model name for pkl saving
+        model_code = model_class.__name__.lower().replace("classifier", "")
+
+        # Save the model!
+        save_path = MODEL_DIR / f'{model_code}.pkl'
         joblib.dump(trained_model, save_path) 
 
         if verbose:
