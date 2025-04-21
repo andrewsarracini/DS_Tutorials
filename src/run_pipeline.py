@@ -3,7 +3,9 @@ from src.tune import grand_tuner, optuna_tuner
 from src.train import train_model
 from src.helper import detect_class_imbalance, stratified_sample, detect_class_imbalance
 from src.eval import eval_classification
+from src.paths import MODEL_DIR
 
+import joblib 
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import pickle
@@ -81,6 +83,17 @@ def tune_and_train_full(model_class, model_name, X_train, y_train,
     })
 
     trained_model = trained_models[model_name]
+
+    # === Save trained model to pkl ===
+    basename = model_name.lower().replace('classifier', '')
+    basename = basename.replace('_', '-').replace(' ', '-')
+    filename = f'{basename}.pkl' 
+    save_path = MODEL_DIR / filename 
+
+    joblib.dump(trained_model, save_path) 
+    
+    if verbose: 
+        print(f'✅ {model_name} trained | Saved to {save_path}')
 
     if X_test is not None and y_test is not None:
         print(f'\n Running evaluation on test set...')

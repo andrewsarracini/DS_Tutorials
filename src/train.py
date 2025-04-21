@@ -12,7 +12,6 @@ import json
 
 from src.logger_setup import logger
 from src.helper import strip_classifier_prefix
-from src.paths import MODEL_DIR
 
 def train_model(X_train, y_train, models, verbose=True):
     '''
@@ -91,18 +90,9 @@ def train_model(X_train, y_train, models, verbose=True):
             trained_model = Pipeline(steps) 
             trained_model.fit(X_train, y_train)
 
-        # Ensure model directory exists
-        MODEL_DIR.mkdir(parents=True, exist_ok=True) 
-
-        # Simplifying model name for pkl saving
-        model_code = model_class.__name__.lower().replace("classifier", "")
-
-        # Save the model!
-        save_path = MODEL_DIR / f'{model_code}.pkl'
-        joblib.dump(trained_model, save_path) 
-
         if verbose:
-            print(f"\n✅ {model_name} trained | Saved to {save_path}")
+            # print(f"\n✅ {model_name} trained | Saved to {save_path}")
+            print(f'\n ✅ {model_name} Trained!')
             print("="*60)
 
         trained_models[model_name] = trained_model
