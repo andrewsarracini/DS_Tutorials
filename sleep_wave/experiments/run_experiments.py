@@ -102,7 +102,7 @@ def main():
     '''
     parser = argparse.ArgumentParser() 
     parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
-    parser.add_argument('--single', action='store_true', help='Run single feature func only')
+    parser.add_argument('--last', action='store_true', help='Run single feature func only')
     parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm', 'rf'], help='Model selection')
     parser.add_argument('--trials', type=int, default=10, help='Number of Optuna trials')
     args = parser.parse_args()
@@ -111,7 +111,7 @@ def main():
     all_features = register_all_features() 
     results_log = []
 
-    features_to_run = [all_features[0]] if args.single else all_features
+    features_to_run = [all_features[-1]] if args.single else all_features
    
     model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
     model_params = {'verbosity':-1} if args.model == 'lgbm' else None

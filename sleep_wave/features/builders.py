@@ -51,3 +51,27 @@ def feat_bandpower_lags(df:pd.DataFrame):
     '''
     df = df[[col for col in df.columns if not col.endswith(tuple(f"_lag{i}" for i in range(1, 4)))]]
     return add_lag_feats(df, ['delta', 'theta', 'alpha', 'beta'], lags=[1,2]) 
+
+def feat_band_rollmean(df:pd.DataFrame, windows=[3,5]): 
+    '''
+    Adds rollingm mean feats for each band
+    
+    Parameters: 
+        df: df with raw bandpowers
+        windows (list): list of window sizes in epochs 
+        
+    Returns: 
+        df: updated with rolling mean feats
+    '''
+    df = df.copy()
+    bands = ['delta', 'theta', 'alpha', 'beta']
+
+    for band in bands: 
+        for w in windows: 
+            col_name = f'{band}_rollmean_{w}'
+            # center = True -- aligns with current epoch
+            # min_periods = 1 -- NaN avoidance
+            df[col_name] = df[band].rolling(window=w, center=True, min_periods=1).mean()
+        
+    return df
+    
