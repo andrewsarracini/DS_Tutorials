@@ -111,7 +111,7 @@ def main():
     all_features = register_all_features() 
     results_log = []
 
-    features_to_run = [all_features[-1]] if args.single else all_features
+    features_to_run = [all_features[-1]] if args.last else all_features
    
     model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
     model_params = {'verbosity':-1} if args.model == 'lgbm' else None
