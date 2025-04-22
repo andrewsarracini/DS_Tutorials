@@ -134,7 +134,7 @@ def main():
 
     # Save results
     timestamp = datetime.now().strftime("%m%d")
-    feature_code = 'single' if args.single else 'allfeats'
+    feature_code = 'last' if args.last else 'allfeats'
     model_code = 'lgbm' if args.model == 'lgbm' else 'rf' 
     subject_code = f"s{args.subject}"
     
