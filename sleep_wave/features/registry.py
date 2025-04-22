@@ -12,4 +12,4 @@ def register_all_features():
             'func': feat_bandpower_lags,
             'notes': 'Adds 1- and 2-epoch lag feats for each band'
         }
-    ] # Add more features here! 
+    ] # Note to add more features on 04/22/25, then do a non "--single" run

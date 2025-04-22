@@ -1,0 +1,2 @@
+feature_name,notes,target_subject,model_used,accuracy,weighted_f1,precision,recall,N1_f1,N2_f1,N3_f1,REM_f1,Wake_f1,n_trials
+Band lag1 lag2,Adds 1- and 2-epoch lag feats for each band,7011,LGBMClassifier,0.710091743119266,0.6930098513809965,0.7016415967328669,0.710091743119266,0.2773722627737226,0.7930131004366813,0.6530612244897959,0.6857142857142857,0.6702412868632708,1
