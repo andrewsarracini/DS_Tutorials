@@ -75,3 +75,23 @@ def feat_band_rollmean(df:pd.DataFrame, windows=[3,5]):
         
     return df
     
+def feat_band_diff(df:pd.DataFrame):
+    '''
+    Adds first-order difference for each band
+    Highlights changes in each band across epochs 
+    Thus, gives info on the direction and intensity of the band shift 
+
+    Parameters:
+        df: df with raw bandpowers
+
+    Returns: 
+        df: updated df with diff feats 
+    '''
+    df = df.copy()
+    bands = ['delta', 'theta', 'alpha', 'beta']
+
+    for band in bands:
+        if band in df.columns: 
+            df[f'{band}_diff'] = df[band].diff().fillna(0) 
+    
+    return df

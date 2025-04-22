@@ -1,0 +1,2 @@
+feature_name,notes,target_subject,model_used,accuracy,weighted_f1,precision,recall,N1_f1,N2_f1,N3_f1,REM_f1,Wake_f1,n_trials
+band_rollmean,"Adds rolling average (windows 3,5 epochs) for all bands",7011,LGBMClassifier,0.6996336996336996,0.6799471409380674,0.6875766456820337,0.6996336996336996,0.2676056338028169,0.7962166809974205,0.6374501992031872,0.6953405017921147,0.6017191977077364,1
