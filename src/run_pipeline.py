@@ -8,10 +8,14 @@ from src.paths import MODEL_DIR
 import joblib 
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+import random
 import pickle
 import json
 
 from .paths import MODEL_DIR, TUNED_PARAMS_DIR
+
+np.random.seed(10)
+random.seed(10)
 
 def tune_and_train_full(model_class, model_name, X_train, y_train,
                         sample_frac=0.1, model_params=None,

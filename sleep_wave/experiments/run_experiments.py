@@ -62,9 +62,9 @@ def run_feature_experiment_loso(
     
     # Ensure model_params exists and suppress LightGBM verbosity if applicable
     if model_class == LGBMClassifier:
-        model_params = {"verbose": -1, "class_weight": "balanced", **(model_params or {})}
+        model_params = {"verbose": -1, "class_weight": "balanced", "random_state": 10, **(model_params or {})}
     else:
-        model_params = model_params or {"class_weight": "balanced"}
+        model_params = model_params or {"class_weight": "balanced", "random_state": 10}
 
     loso_result, best_params, final_metrics = loso_full(
         df=df_feat,

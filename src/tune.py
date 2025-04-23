@@ -227,7 +227,7 @@ def optuna_tuner(model_class, X, y, scoring='f1_weighted',
     progress_bar = TqdmProgressBar(n_trials)
     optuna.logging.set_verbosity(optuna.logging.WARNING)  # Suppress Optuna logs
     
-    study = optuna.create_study(direction="maximize", study_name=study_name)
+    study = optuna.create_study(direction="maximize", study_name=study_name, sampler=optuna.samplers.TPESampler(seed=random_state))
     study.optimize(objective, n_trials=n_trials, n_jobs=-1, callbacks=[progress_bar])
     progress_bar.close()
 

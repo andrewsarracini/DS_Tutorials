@@ -1,0 +1,2 @@
+feature_name,notes,target_subject,model_used,accuracy,weighted_f1,precision,recall,N1_f1,N2_f1,N3_f1,REM_f1,Wake_f1,n_trials
+band_base,"Baseline band feats (delta, theta, alpha, beta, cycle, label, subject_id)",7011,LGBMClassifier,0.6382783882783882,0.6168901636609531,0.6294721612906187,0.6382783882783882,0.33986928104575165,0.7604690117252931,0.5086206896551724,0.5703971119133574,0.4817073170731707,1
