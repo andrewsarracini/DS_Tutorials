@@ -23,7 +23,6 @@ def main():
     model_params = {'verbosity':-1, 'random_state':10} if args.model == 'lgbm' else {'random_state':10}
 
     # TEMP =========================================================
-    target_subject = args.subject
     models_to_try = ['lgbm', 'rf'] 
 
     for model_choice in models_to_try:
