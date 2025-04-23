@@ -35,7 +35,7 @@ def main():
         for feature_entry in features_to_run:
             model_name = f"{model_class.__name__}_{feature_entry['name'].replace(' ', '_')}"
 
-            print(f"\n🔁 Running: {feature_entry['name']} on subject {args.subject} | model: {model_code}")
+            print(f"\n🔁 Running: {feature_entry['name']} on subject {args.subject}")
             result = run_feature_experiment_loso(
                 df=df_edf,
                 feature_entry=feature_entry,
