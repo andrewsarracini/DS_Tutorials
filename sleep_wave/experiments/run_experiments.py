@@ -140,7 +140,14 @@ def main():
 
     # Save results
     timestamp = datetime.now().strftime("%m%d")
-    feature_code = 'last' if args.last else 'allfeats'
+    
+    if args.baseline:
+        feature_code = 'baseline'
+    elif args.last: 
+        feature_code = 'last'
+    else: 
+        feature_code = 'allfeats;'
+
     model_code = 'lgbm' if args.model == 'lgbm' else 'rf' 
     subject_code = f"s{args.subject}"
     
