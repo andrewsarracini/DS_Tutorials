@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 # ==================================================
-# Baseline model for comparison-- no `cycle` 
+# Baseline model for comparison
 
 def feat_bandpower_base(df:pd.DataFrame):
     '''
@@ -12,8 +12,8 @@ def feat_bandpower_base(df:pd.DataFrame):
     Note: omitting cycle on purpose-- it's an engineered feature and was a boost when it was created!
     '''
     return df[['delta', 'theta', 'alpha', 'beta', 'label', 'subject_id']]
-
 # ==================================================
+
 def add_lag_feats(df:pd.DataFrame, feature_cols, lags=[1,2]):
     '''
     Adds lagged versions of bandpower features for each subject using group-wise shifting

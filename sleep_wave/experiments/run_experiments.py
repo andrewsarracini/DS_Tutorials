@@ -15,6 +15,7 @@ import argparse
 from sleep_wave.features.registry import register_all_features
 from src.paths import DATA_DIR, LOG_DIR
 from src.models.loso import loso_full
+from sleep_wave.cli.cli_utils import get_common_arg_parser
 
 def run_feature_experiment_loso(
         df:pd.DataFrame,
@@ -101,12 +102,7 @@ def main():
     '''
     CLI entrypoint for running LOSO experiments over one or all engineered feats
     '''
-    parser = argparse.ArgumentParser() 
-    parser.add_argument('--subject', type=int, default=7242, help='Target subject for LOSO') 
-    parser.add_argument('--last', action='store_true', help='Run single feature func only')
-    parser.add_argument('--baseline', action='store_true', help='Run baseline feats only')
-    parser.add_argument('--model', type=str, default='lgbm', choices=['lgbm', 'rf'], help='Model selection')
-    parser.add_argument('--trials', type=int, default=10, help='Number of Optuna trials')
+    parser = get_common_arg_parser()
     args = parser.parse_args()
 
     df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
