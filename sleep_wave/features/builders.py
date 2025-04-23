@@ -1,6 +1,7 @@
 # sleep_wave/featues/builders.py
 
 import pandas as pd
+import numpy as np
 
 # ==================================================
 # Baseline model for comparison-- no `cycle` 
@@ -94,4 +95,35 @@ def feat_band_diff(df:pd.DataFrame):
         if band in df.columns: 
             df[f'{band}_diff'] = df[band].diff().fillna(0) 
     
+    return df
+
+def feat_band_ratios(df:pd.DataFrame):
+    '''
+    Adds key freq band ratio feats
+    Ratios selected based on sleep research and greatest impact
+    
+    Ratios included:
+        - alpha / theta (drowsiness, cognitive decline)
+        - alpha / delta (mental fatigue, sleepiness)
+        - beta / alpha (wakefulness, arousal)
+        - theta / beta (ADHD, REM onset marker)
+        - beta / delta (alertness vs. deep sleep)
+
+    *** Uses np.log1p() to stabilize the scale.
+
+    Parameters:
+        df: df with raw bandpowers
+    
+    Returns: 
+        df: updated with band ratio feats
+    '''
+    eps = 1e-13
+
+    df = df.copy()
+    df['alpha_theta'] = np.log1p(df['alpha']  (df['theta'] + eps))
+    df['alpha_delta'] = np.log1p(df['alpha']  (df['delta'] + eps))
+    df['beta_alpha'] = np.log1p(df['beta']   (df['alpha'] + eps))
+    df['theta_beta'] = np.log1p(df['theta']  (df['beta'] + eps))
+    df['beta_delta'] = np.log1p(df['beta']   (df['delta'] + eps))
+
     return df

@@ -1,6 +1,6 @@
 # sleep_wave/features/registry.py 
 
-from sleep_wave.features.builders import feat_band_diff, feat_band_rollmean, feat_bandpower_lags
+from sleep_wave.features.builders import feat_band_diff, feat_band_ratios, feat_band_rollmean, feat_bandpower_lags
 
 def register_all_features():
     '''
@@ -23,5 +23,10 @@ def register_all_features():
             'name': 'band_diff',
             'func': feat_band_diff,
             'notes': 'Adds rate of change feat for bands'
-        }
+        }, 
+
+        {'name': 'band_ratio',
+         'func': feat_band_ratios,
+         'notes': 'Adds band ratios (delta/theta, alpha/theta, etc.)'
+         }
     ]
