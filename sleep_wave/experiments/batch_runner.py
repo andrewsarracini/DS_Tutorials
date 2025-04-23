@@ -22,15 +22,11 @@ def main():
     model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
     model_params = {'verbosity':-1, 'random_state':10} if args.model == 'lgbm' else {'random_state':10}
 
-    # TEMP =========================================================
-    models_to_try = ['lgbm', 'rf'] 
+    models_to_try = ['lgbm', 'rf'] if args.batch_models else [args.model]
 
-    for model_choice in models_to_try:
+    for model_choice in models_to_try: 
         model_class = LGBMClassifier if model_choice == 'lgbm' else RandomForestClassifier
         model_params = {'verbosity':-1, 'random_state':10} if model_choice == 'lgbm' else {'random_state':10}
-        
-    # TEMP =========================================================
-
 
         for feature_entry in features_to_run:
             model_name = f"{model_class.__name__}_{feature_entry['name'].replace(' ', '_')}"
@@ -51,6 +47,7 @@ def main():
     # Save results
     timestamp = datetime.now().strftime("%m%d")
     
+    # csv naming: feats included
     if args.baseline:
         feature_code = 'baseline'
     elif args.last: 
@@ -58,7 +55,9 @@ def main():
     else: 
         feature_code = 'allfeats'
 
-    model_code = 'lgbm' if args.model == 'lgbm' else 'rf' 
+    # csv naming: model 
+    model_code = 'multi' if args.batch_models else args.model
+
     subject_code = f"s{args.subject}"
     
     filename = f'{feature_code}-{model_code}-{subject_code}-{timestamp}.csv'
