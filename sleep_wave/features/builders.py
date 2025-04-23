@@ -120,10 +120,10 @@ def feat_band_ratios(df:pd.DataFrame):
     eps = 1e-13
 
     df = df.copy()
-    df['alpha_theta'] = np.log1p(df['alpha']  (df['theta'] + eps))
-    df['alpha_delta'] = np.log1p(df['alpha']  (df['delta'] + eps))
-    df['beta_alpha'] = np.log1p(df['beta']   (df['alpha'] + eps))
-    df['theta_beta'] = np.log1p(df['theta']  (df['beta'] + eps))
-    df['beta_delta'] = np.log1p(df['beta']   (df['delta'] + eps))
+    df['alpha_theta'] = np.log1p(df['alpha'] / (df['theta'] + eps))
+    df['alpha_delta'] = np.log1p(df['alpha'] / (df['delta'] + eps))
+    df['beta_alpha'] = np.log1p(df['beta']  / (df['alpha'] + eps))
+    df['theta_beta'] = np.log1p(df['theta'] / (df['beta'] + eps))
+    df['beta_delta'] = np.log1p(df['beta']  / (df['delta'] + eps))
 
     return df
