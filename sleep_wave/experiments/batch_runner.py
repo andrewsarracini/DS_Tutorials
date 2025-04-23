@@ -22,21 +22,32 @@ def main():
     model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
     model_params = {'verbosity':-1, 'random_state':10} if args.model == 'lgbm' else {'random_state':10}
 
-    for feature_entry in features_to_run:
-        model_name = f"{model_class.__name__}_{feature_entry['name'].replace(' ', '_')}"
+    # TEMP =========================================================
+    target_subject = args.subject
+    models_to_try = ['lgbm', 'rf'] 
 
-        print(f"\n🔁 Running: {feature_entry['name']} on subject {args.subject}")
-        result = run_feature_experiment_loso(
-            df=df_edf,
-            feature_entry=feature_entry,
-            target_subject=args.subject,
-            model_class=model_class,
-            model_name=model_name,
-            n_trials=args.trials, 
-            model_params=model_params
-        )
+    for model_choice in models_to_try:
+        model_class = LGBMClassifier if model_choice == 'lgbm' else RandomForestClassifier
+        model_params = {'verbosity':-1, 'random_state':10} if model_choice == 'lgbm' else {'random_state':10}
+        
+    # TEMP =========================================================
 
-        results_log.append(result)
+
+        for feature_entry in features_to_run:
+            model_name = f"{model_class.__name__}_{feature_entry['name'].replace(' ', '_')}"
+
+            print(f"\n🔁 Running: {feature_entry['name']} on subject {args.subject} | model: {model_code}")
+            result = run_feature_experiment_loso(
+                df=df_edf,
+                feature_entry=feature_entry,
+                target_subject=args.subject,
+                model_class=model_class,
+                model_name=model_name,
+                n_trials=args.trials, 
+                model_params=model_params
+            )
+
+            results_log.append(result)
 
     # Save results
     timestamp = datetime.now().strftime("%m%d")
