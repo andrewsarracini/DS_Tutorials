@@ -1,6 +1,6 @@
 # sleep_wave/features/registry.py 
 
-from sleep_wave.features.builders import feat_band_diff, feat_band_ratios, feat_band_rollmean, feat_bandpower_lags
+from sleep_wave.features.builders import feat_band_diff, feat_band_ratios, feat_band_rollmean, feat_bandpower_base, feat_bandpower_lags
 
 def register_all_features():
     '''
@@ -8,7 +8,13 @@ def register_all_features():
     '''
     return [
         {
-            'name': 'Band lag1 lag2',
+            'name': 'band_base',
+            'func': feat_bandpower_base,
+            'notes': 'Baseline band feats (delta, theta, alpha, beta, cycle, label, subject_id)'
+        },
+
+        {
+            'name': 'band_lag1_2',
             'func': feat_bandpower_lags,
             'notes': 'Adds 1- and 2-epoch lag feats for each band'
         },
