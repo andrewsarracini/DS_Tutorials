@@ -15,7 +15,7 @@ import argparse
 from sleep_wave.features.registry import register_all_features
 from src.paths import DATA_DIR, LOG_DIR
 from src.models.loso import loso_full
-from sleep_wave.cli.cli_utils import get_common_arg_parser
+from sleep_wave.cli.cli_utils import get_common_arg_parser, resolve_feats_to_run
 
 def run_feature_experiment_loso(
         df:pd.DataFrame,
@@ -109,11 +109,7 @@ def main():
     all_features = register_all_features() 
     results_log = []
 
-    # features_to_run = [all_features[-1]] if args.last else all_features
-    if args.baseline:
-        features_to_run = [all_features[0]] # only base feats
-    else: 
-        features_to_run = [all_features[-1]]
+    features_to_run = resolve_feats_to_run(all_features, args)
    
     model_class = LGBMClassifier if args.model == 'lgbm' else RandomForestClassifier
     model_params = {'verbosity':-1} if args.model == 'lgbm' else None
