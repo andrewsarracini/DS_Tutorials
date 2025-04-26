@@ -147,3 +147,15 @@ def feat_band_rollstd(df: pd.DataFrame):
     return df
 
 # More advanced feat-- Entropy
+# How unpredictable the signal is 
+# High Entropy: lots of random variation (Wake or REM)
+# Low Entropy: stable, repetitive patterns (N3 most likely)
+
+# Shannon Entropy requires it's own func
+def shannon_entropy(arr: np.ndarray): 
+    '''
+    Computes Shannon entropy of a normalized array
+    '''
+    # Removes 0 to avoid log(0)
+    arr = arr[arr>0] 
+    return -np.sum(arr * np.log(arr)) 
