@@ -117,7 +117,7 @@ def feat_band_ratios(df:pd.DataFrame):
     Returns: 
         df: updated with band ratio feats
     '''
-    eps = 1e-13
+    eps = 1e-15
 
     df = df.copy()
     df['alpha_theta'] = np.log1p(df['alpha'] / (df['theta'] + eps))
@@ -127,3 +127,23 @@ def feat_band_ratios(df:pd.DataFrame):
     df['beta_delta'] = np.log1p(df['beta']  / (df['delta'] + eps))
 
     return df
+
+def feat_band_rollstd(df: pd.DataFrame): 
+    '''
+    Adds rolling standard deviation feats over the bands 
+    Computes for windows of 3 and 5 epochs 
+    Essentially another technique for localized smoothing
+    '''
+
+    df = df.copy()
+    band_cols = ['delta', 'theta', 'alpha', 'beta']
+    windows = [3,5]
+
+    for band in band_cols:
+        for win in windows:
+            new_col = f'{band}_rollstd{win}'
+            df[new_col] = df[band].rolling(window=win, min_periods=1, center=True).std()
+
+    return df
+
+# More advanced feat-- Entropy
