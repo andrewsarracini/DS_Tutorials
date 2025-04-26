@@ -1,6 +1,6 @@
 # sleep_wave/features/registry.py 
 
-from sleep_wave.features.builders import feat_band_diff, feat_band_ratios, feat_band_rollmean, feat_band_rollstd, feat_bandpower_base, feat_bandpower_lags
+from sleep_wave.features.builders import feat_band_diff, feat_band_entropy, feat_band_ratios, feat_band_rollmean, feat_band_rollstd, feat_bandpower_base, feat_bandpower_lags
 
 def register_all_features():
     '''
@@ -40,5 +40,11 @@ def register_all_features():
              'name': 'band_rollstd', 
              'func': feat_band_rollstd,
              'notes': 'Adds rolling std (3, 5 window) for bands'
+         }, 
+
+         {
+             'name': 'band_entropy', 
+             'func': feat_band_entropy, 
+             'notes': 'Shannon entropy across normalized bands'
          }
     ]

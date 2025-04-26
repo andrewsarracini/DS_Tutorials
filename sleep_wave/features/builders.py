@@ -159,3 +159,23 @@ def shannon_entropy(arr: np.ndarray):
     # Removes 0 to avoid log(0)
     arr = arr[arr>0] 
     return -np.sum(arr * np.log(arr)) 
+
+def feat_band_entropy(df: pd.DataFrame): 
+    '''
+    Adds Shannon entropy feat across bands 
+    '''
+    df = df.copy()
+    band_cols = ['delta', 'theta', 'alpha', 'beta']
+    band_data = df[band_cols].values
+
+    # Normalize each row to sum to 1
+    # This turns it into a prob distribution! 
+    band_probs = band_data / np.sum(band_data, axis=1, keepdims=True)
+
+    # Handle divide-by-zero rows by setting probs to uniform
+    band_probs[np.isnan(band_probs)] = 1.0 / len(band_cols) 
+
+    # Finally, apply entropy per row
+    df['band_entropy'] = np.apply_along_axis(shannon_entropy, 1, band_probs)
+
+    return df
