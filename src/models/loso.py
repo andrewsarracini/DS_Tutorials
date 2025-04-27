@@ -41,6 +41,23 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
 
     y_pred = label_encoder.inverse_transform(model.predict(X_subj))
 
+    # Dynamic mode detection! 
+    labels_present = sorted(list(set(y_pred)))
+    if set(labels_present) <= {'NREM', 'REM'}:
+        stage_colors = {
+            'NREM': '#1f77b4',
+            'REM': '#ff7f03'
+        }
+        label_order = ['NREM', 'REM'] 
+    else: 
+        stage_colors = {
+            "Wake": "#9b59b6",  # Soft lavender
+            "N1": "#f1c40f",     # Yellow
+            "REM": "#e67e22",    # Rich orange (darker than N1)
+            "N2": "#1abc9c",     # Teal
+            "N3": "#2c3e50"      # Dark blue-gray
+        }
+
     # For safety, clip to n_epochs available
     n_epochs = min(n_epochs, len(df_subj))
     y_true, y_pred = y_true[:n_epochs], y_pred[:n_epochs] 
@@ -56,14 +73,6 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
 
     # Add a thin white row separator between Ground Truth and Classifier
     data = np.array([y_true_idx, y_pred_idx])
-
-    stage_colors = {
-        "Wake": "#9b59b6",  # Soft lavender
-        "N1": "#f1c40f",     # Yellow
-        "REM": "#e67e22",    # Rich orange (darker than N1)
-        "N2": "#1abc9c",     # Teal
-        "N3": "#2c3e50"      # Dark blue-gray
-    }
 
     cmap = ListedColormap([stage_colors[stage] for stage in label_order])
 
