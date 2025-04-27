@@ -75,7 +75,8 @@ def run_feature_experiment_loso(
         n_trials=n_trials,
         save_plot=save_plot,
         target_subject=target_subject,
-        model_params=model_params
+        model_params=model_params,
+        target_col=target_column
     )
 
     return {
@@ -140,7 +141,7 @@ def main():
     elif args.last: 
         feature_code = 'last'
     else: 
-        feature_code = 'allfeats;'
+        feature_code = 'allfeats'
 
     model_code = 'lgbm' if args.model == 'lgbm' else 'rf' 
     subject_code = f"s{args.subject}"
