@@ -52,6 +52,11 @@ def run_feature_experiment_loso(
     '''
     # Apply feature transformation: 
     df_feat = feature_entry['func'](df.copy())
+
+    # Restore Important cols if dropped by feature func 
+    for col in ['label', 'binary_label', 'subject_id']:
+        if col in df.columns and col not in df_feat.columns:
+            df_feat[col] = df[col] 
     
     # Sanity check before training
     if df_feat.isna().any().any():

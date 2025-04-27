@@ -31,9 +31,10 @@ def register_all_features():
             'notes': 'Adds rate of change feat for bands'
         }, 
 
-        {'name': 'band_ratio',
-         'func': feat_band_ratios,
-         'notes': 'Adds band ratios (delta/theta, alpha/theta, etc.)'
+        {
+            'name': 'band_ratio',
+            'func': feat_band_ratios,
+            'notes': 'Adds band ratios (delta/theta, alpha/theta, etc.)'
          }, 
 
          {
