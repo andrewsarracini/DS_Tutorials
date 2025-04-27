@@ -144,8 +144,8 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
         y_test = le.transform(df_test[target_col])
 
         # (always drop both label-type cols)
-        X_train = df_train.drop(columns=['label', 'binary_label'], errors='ignore')
-        X_test = df_test.drop(columns=['label', 'binary_label'], errors='ignore')
+        X_train = df_train.drop(columns=['label', 'binary_label', 'subject_id'], errors='ignore')
+        X_test = df_test.drop(columns=['label', 'binary_label', 'subject_id'], errors='ignore')
 
         #=====================================================
         # TEMP-- for testing! 
