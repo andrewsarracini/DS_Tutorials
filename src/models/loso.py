@@ -105,7 +105,7 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
 
 def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
                           save_plot=False, target_subject=None, plot_dir=DEFAULT_PLOT_DIR,
-                          model_params=None):
+                          model_params=None, target_col='label'):
     '''
     Performs leave-one-subject-out cross-validation
 
@@ -138,13 +138,13 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
             continue
 
         le = LabelEncoder()
-        le.fit(df_train['label']) 
+        le.fit(df_train[target_col]) 
 
-        y_train = le.fit_transform(df_train['label'])
-        y_test = le.transform(df_test['label'])
+        y_train = le.fit_transform(df_train[target_col])
+        y_test = le.transform(df_test[target_col])
 
-        X_train = df_train.drop(columns=['label'])
-        X_test = df_test.drop(columns=['label']) 
+        X_train = df_train.drop(columns=[target_col])
+        X_test = df_test.drop(columns=[target_col]) 
 
         trained_model, best_params, final_metrics = tune_and_train_full(
             model_class=model_class,

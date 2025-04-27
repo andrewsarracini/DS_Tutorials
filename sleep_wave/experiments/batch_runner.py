@@ -39,7 +39,8 @@ def main():
                 model_class=model_class,
                 model_name=model_name,
                 n_trials=args.trials, 
-                model_params=model_params
+                model_params=model_params, 
+                target_column='binary_label' if args.binary else 'label'
             )
 
             results_log.append(result)

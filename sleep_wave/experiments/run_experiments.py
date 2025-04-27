@@ -25,7 +25,8 @@ def run_feature_experiment_loso(
         model_name, 
         n_trials=10, 
         save_plot=True,
-        model_params=None): 
+        model_params=None,
+        target_column='label'): 
     '''
     Applies a feature func, runs LOSO and logs results (RESULT LOG)
 
@@ -125,7 +126,8 @@ def main():
             model_class=model_class,
             model_name=model_name,
             n_trials=args.trials, 
-            model_params=model_params
+            model_params=model_params,
+            target_column='binary_label' if args.binary else 'label'
         )
 
         results_log.append(result)

@@ -9,6 +9,7 @@ def get_common_arg_parser():
     parser.add_argument('--baseline', action='store_true', help='Run only the baseline feature set')
     parser.add_argument('--allfeats', action='store_true', help='Run all features in the registry')
     parser.add_argument('--batch_models', action='store_true', help='Run both models (lgbm and rf)')
+    parser.add_argument('--binary', action='store_true', help='Use REM/NREM binary classification instead of all sleep stages')
 
 
     return parser
