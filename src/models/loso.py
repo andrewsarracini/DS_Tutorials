@@ -36,7 +36,7 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
     df_subj = df[df['subject_id'] == subject_id].copy()
 
     # Predict: 
-    X_subj = df_subj.drop(columns=['label'])
+    X_subj = df_subj.drop(columns=['label','binary_label', 'subject_id'], errors='ignore')
     y_true = df_subj['label'].values
 
     y_pred = label_encoder.inverse_transform(model.predict(X_subj))
