@@ -62,7 +62,7 @@ def run_feature_experiment_loso(
     if df_feat.isna().any().any():
         raise ValueError(f"⚠️ NaNs detected after applying {feature_entry['name']}")
 
-    stds = df_feat.drop(columns=['label', 'subject_id'], errors='ignore').std()
+    stds = df_feat.drop(columns=['label', 'binary_label', 'subject_id'], errors='ignore').std()
     low_variance = stds[stds < 1e-15]
     if not low_variance.empty:
         raise ValueError(f"⚠️ Near-zero variance in columns: {list(low_variance.index)} from {feature_entry['name']}")
