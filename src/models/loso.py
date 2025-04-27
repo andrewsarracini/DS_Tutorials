@@ -19,7 +19,8 @@ from matplotlib.colors import ListedColormap
 DEFAULT_PLOT_DIR = Path(__file__).absolute().parent.parent / "sleep_plots"
 
 def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame, 
-                          label_encoder, label_order=None, n_epochs=50, save_path=None):
+                          label_encoder, label_order=None, n_epochs=50, save_path=None,
+                          target_col='label'):
     '''
     Visualizes sleep stage preds vs ground truth for a specific subject
 
@@ -37,7 +38,7 @@ def plot_subject_sequence(subject_id, model, model_name, df: pd.DataFrame,
 
     # Predict: 
     X_subj = df_subj.drop(columns=['label','binary_label', 'subject_id'], errors='ignore')
-    y_true = df_subj['label'].values
+    y_true = df_subj[target_col].values # now it's dynamic! 
 
     y_pred = label_encoder.inverse_transform(model.predict(X_subj))
 
@@ -202,7 +203,8 @@ def loso_full(df: pd.DataFrame, model_class, model_name, n_trials=30,
             df = df, 
             label_encoder= le, 
             n_epochs= len(df_test),
-            save_path=save_path
+            save_path=save_path,
+            target_col=target_col # HA! 
         )
 
         return trained_model, best_params, final_metrics
