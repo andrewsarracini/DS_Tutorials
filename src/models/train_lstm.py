@@ -23,31 +23,47 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
     Returns: 
         model: Trained Model
     '''
-
+    # moves model to GPU or CPU 
+    # required *before* training starts!
     model.to(device)
 
+    # puts model in training mode 
+    # count up the epoch's total training loss
     for epoch in range(n_epochs): 
         model.train()
         train_loss = 0.0 
 
+        # load each batch of sequences and labels 
+        # move both to the GPU
         for batch in dataloaders['train']:
             inputs, targets = batch
             inputs, targets = inputs.to(device), targets.to(device) 
 
+            # clear prev gradients (zero_grad) 
+            # forward pass: `outputs` are raw scores (logits)
             optimizer.zero_grad()
             outputs = model(inputs) 
 
+            # compute the loss 
+            # `.backward` computes gradients
+            # `.step` updates model weights
             loss = loss_fn(outputs, targets)
             loss.backward()
             optimizer.step() 
 
+            # add the batch's loss to the epoch total
             train_loss += loss.item()
 
-        # Validation
+        # ===Validation ===
+        # `eval` disables dropout & "training-only" layers
+        # Initialize eval accumulators 
         model.eval()
         val_loss = 0.0 
         all_preds, all_targets = [], []
 
+        # `no_grad` -- avoids gradients (saves memory) 
+        # compute predictions (argmax for class index) 
+        # store preds and target for metric calculation
         with torch.no_grad():
             for batch in dataloaders['val']:
                 inputs, targets = batch
@@ -59,7 +75,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
 
                 preds = torch.argmax(outputs, dim=1)
                 all_preds.extend(targets.cpu().numpy())
+                all_targets.extend(targets.cpu().numpy()) 
 
+            # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
             f1 = f1_score(all_targets, all_preds, average='weighted', zero_division=0)
 
