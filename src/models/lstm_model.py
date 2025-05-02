@@ -6,6 +6,7 @@ import torch.nn as nn
 # num_layers: stacked LSTM layers
 # num_classes: 2 for binary, 5 for multiclass (N1, N2, N3, REM, Wake) 
 # dropout: used between LSTM layers (if > 1) 
+
 class SleepLSTM(nn.Module):
     def __init__(self, input_size, hidden_size=64, num_layers=1, num_classes=5, dropout=0.0):
         super(SleepLSTM, self).__init__()
