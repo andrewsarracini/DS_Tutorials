@@ -75,7 +75,7 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 val_loss += loss.item()
 
                 preds = torch.argmax(outputs, dim=1)
-                all_preds.extend(targets.cpu().numpy())
+                all_preds.extend(preds.cpu().numpy())
                 all_targets.extend(targets.cpu().numpy()) 
 
             # sklearn metrics
@@ -89,6 +89,6 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 
             logger.info(f'[E{epoch+1}] Train={train_loss:.4f} Val={val_loss:.4f} Acc={acc:.4f} F1={f1:.4f}')
         
-        print("✅ LSTM training complete.\n")
-        return model
+    print("✅ LSTM training complete.\n")
+    return model
     
