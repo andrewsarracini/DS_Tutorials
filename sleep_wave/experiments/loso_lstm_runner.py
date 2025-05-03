@@ -29,9 +29,12 @@ def main():
     df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
 
     target_col = 'binary_label' if args.binary else 'label'
+    non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}
+    feature_cols = [col for col in df.columns if col not in non_feat_cols]
 
     loso_lstm(
         df=df, 
+        feature_cols=feature_cols,
         target_subject=args.subject,
         label_col=target_col,
         window_size=args.seq_len, 
