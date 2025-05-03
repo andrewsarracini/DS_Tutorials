@@ -8,15 +8,21 @@ import torch.nn as nn
 # dropout: used between LSTM layers (if > 1) 
 
 class SleepLSTM(nn.Module):
-    def __init__(self, input_size, hidden_size=64, num_layers=1, num_classes=5, dropout=0.0):
+    def __init__(self, input_size, hidden_size=64, num_layers=1, 
+                 num_classes=5, dropout=0.0, bidirectional=False):
         super(SleepLSTM, self).__init__()
+
+        self.bidirectional = bidirectional
+        self.hidden = hidden_size
+        self.num_directions = 2 if bidirectional else 1
 
         self.lstm = nn.LSTM(
             input_size=input_size, 
             hidden_size=hidden_size,
             num_layers=num_layers,
             batch_first=True, # makes input shape (batch, seq_len, input_size)
-            dropout=dropout if num_layers > 1 else 0.0
+            dropout=dropout if num_layers > 1 else 0.0,
+            bidirectional=bidirectional
         )
         # final layer
         # transforms last hidden state -> logits over class scores

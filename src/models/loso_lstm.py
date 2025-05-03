@@ -15,7 +15,7 @@ import pandas as pd
 def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               model_params=None, window_size=10, batch_size=32,
               lr=1e-3, n_epochs=10, target_subject=None, 
-              verbose=True, device=None):
+              verbose=True, device=None, bidirectional=False):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
 
@@ -61,9 +61,15 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         # Initialize the model! 
         input_size = len(feature_cols)
         num_classes = len(np.unique(df[label_col])) 
-        lstm_model = SleepLSTM(input_size=input_size, 
-                               num_classes=num_classes, 
-                               **(model_params or {}))
+        
+        lstm_model = SleepLSTM(
+            input_size=input_size, 
+            hidden_size=model_params.get('hidden_size', 64), 
+            num_layers=model_params.get('num_layers', 1),
+            num_classes=num_classes, 
+            dropout=model_params.get('dropout', 0.0), 
+            bidirectional=bidirectional
+        ) 
         
         optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr) 
         loss_fn = nn.CrossEntropyLoss() 
