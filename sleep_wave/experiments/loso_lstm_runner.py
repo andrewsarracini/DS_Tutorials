@@ -17,6 +17,8 @@ def main():
     parser.add_argument('--hidden_size', type=int, default=128, help='LSTM hidden size')
     parser.add_argument('--lr', type=int, default=1e-3, help='Learning rate')
     parser.add_argument('--bidirectional', action='store_true', help='Use bidirectional LSTM')
+    parser.add_argument('--dropout', type=float, default=0.0, help='Dropout between LSTM layers (only used if num_layers > 1)')
+    parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
 
     args = parser.parse_args()
 
