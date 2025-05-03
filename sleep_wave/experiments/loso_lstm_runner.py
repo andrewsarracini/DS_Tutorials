@@ -32,7 +32,7 @@ def main():
         df=df, 
         target_subject=args.subject,
         label_col=target_col,
-        window_len=args.seq_len, 
+        window_size=args.seq_len, 
         hidden_size=args.hidden_size,
         bidirectional=args.bidirectional,
         n_epochs=args.epochs,
