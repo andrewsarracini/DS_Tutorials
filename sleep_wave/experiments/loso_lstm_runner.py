@@ -33,7 +33,11 @@ def main():
         target_subject=args.subject,
         label_col=target_col,
         window_size=args.seq_len, 
-        hidden_size=args.hidden_size,
+        model_params={
+            'hidden_size': args.hidden_size,
+            'dropout': args.dropout, 
+            'num_layers': args.num_layers
+        },
         bidirectional=args.bidirectional,
         n_epochs=args.epochs,
         lr=args.lr
