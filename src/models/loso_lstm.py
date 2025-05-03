@@ -36,6 +36,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         results (dict): Maps subject_id ot performance metrics
     '''
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu') 
+    print("✅ Device:", torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU")
+
     results = {} 
 
     subjects = [target_subject] if target_subject is not None else df['subject_id'].unique()
