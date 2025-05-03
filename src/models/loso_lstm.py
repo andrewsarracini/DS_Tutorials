@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn 
 from torch.utils.data import DataLoader
+from sklearn.preprocessing import LabelEncoder
 
 from sklearn.metrics import accuracy_score, f1_score
 
@@ -35,8 +36,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
     Returns: 
         results (dict): Maps subject_id ot performance metrics
     '''
-    device = device or ('cuda' if torch.cuda.is_available() else 'cpu') 
-    print("✅ Device:", torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU")
+    device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
 
     results = {} 
 
@@ -48,6 +48,10 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
 
         df_train = df[df['subject_id'] != subject].reset_index(drop=True) 
         df_test = df[df['subject_id'] == subject].reset_index(drop=True) 
+
+        le = LabelEncoder()
+        df_train[label_col] = le.fit_transform(df_train[label_col])
+        df_test[label_col] = le.fit_transform(df_test[label_col]) 
 
         # Dataset + DataLoaders
         train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size)
@@ -61,7 +65,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         # Initialize the model! 
         input_size = len(feature_cols)
         num_classes = len(np.unique(df[label_col])) 
-        
+
         lstm_model = SleepLSTM(
             input_size=input_size, 
             hidden_size=model_params.get('hidden_size', 64), 

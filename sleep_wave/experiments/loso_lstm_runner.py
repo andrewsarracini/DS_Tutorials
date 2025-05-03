@@ -23,7 +23,6 @@ def main():
     args = parser.parse_args()
 
     print('\nStarting LSTM LOSO experiment...')
-    print("✅ Device:", torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU\n")
 
     # Load the data!
     df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
