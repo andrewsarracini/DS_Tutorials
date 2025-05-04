@@ -25,9 +25,6 @@ class LSTMDataset(Dataset):
         # Return one windowed sequence and its label 
         x_seq = self.features[idx: idx + self.window_size]
         y = self.labels[idx + self.window_size - 1] # timestep label
-
-        # DEBUG
-        print(f"[DEBUG] Label at idx {idx} -> {y} (type: {type(y)})")
         
         return torch.tensor(x_seq, dtype=torch.float32), torch.tensor(y, dtype=torch.long)
 

@@ -49,10 +49,6 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         df_train = df[df['subject_id'] != subject].reset_index(drop=True) 
         df_test = df[df['subject_id'] == subject].reset_index(drop=True) 
 
-        # DEBUG 
-        print(f"[DEBUG] Encoded labels in train set: {np.unique(df_train[label_col])}")
-        print(f"[DEBUG] Encoded labels in test set: {np.unique(df_test[label_col])}")
-
         le = LabelEncoder()
         df_train[label_col] = le.fit_transform(df_train[label_col])
         df_test[label_col] = le.fit_transform(df_test[label_col]) 
@@ -69,8 +65,6 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         # Initialize the model! 
         input_size = len(feature_cols)
         num_classes = len(np.unique(df_train[label_col])) 
-        # DEBUG
-        print(f'[DEBUG] Number of classes inferred from training set: {num_classes}')
 
         lstm_model = SleepLSTM(
             input_size=input_size, 
