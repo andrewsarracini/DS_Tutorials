@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 from sklearn.preprocessing import LabelEncoder
 
 from sklearn.metrics import accuracy_score, f1_score
+from sklearn.utils.class_weight import compute_class_weight
 
 from src.models.lstm_model import SleepLSTM
 from src.models.train_lstm import train_lstm
@@ -53,6 +54,16 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         df_train[label_col] = le.fit_transform(df_train[label_col])
         df_test[label_col] = le.fit_transform(df_test[label_col]) 
 
+        class_weights = None
+        if df_train[label_col].nunique() > 2: # if multiclass: 
+            classes = np.unique(df_train[label_col])
+            class_weights = compute_class_weight(class_weight='balanced',
+                                                 classes=classes,
+                                                 y=df_train[label_col])
+            class_weights = torch.tensor(class_weights, dtype=torch.float32).to(device)
+            if verbose:
+                print(f'[DEBUG] Class Weights (multi): {class_weights}')
+
         # Dataset + DataLoaders
         train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size)
         test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size) 
@@ -76,7 +87,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         ) 
         
         optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr) 
-        loss_fn = nn.CrossEntropyLoss() 
+        loss_fn = nn.CrossEntropyLoss(weight=class_weights) 
 
         # Now train the model using `train_lstm` 
         lstm_model = train_lstm(
