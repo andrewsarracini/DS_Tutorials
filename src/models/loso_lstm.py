@@ -68,6 +68,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride)
         test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride) 
 
+        print(f"[INFO] Train seqs: {len(train_ds)} | Val seqs: {len(test_ds)}")
+
         train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
         test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False) 
 
