@@ -179,3 +179,15 @@ def feat_band_entropy(df: pd.DataFrame):
     df['band_entropy'] = np.apply_along_axis(shannon_entropy, 1, band_probs)
 
     return df
+
+def feat_time_context(df: pd.DataFrame):
+    '''
+    Adds a normalized time-of-night context feature.
+    For each subject_id, computes a value from 0 (start of night) to 1 (end of night).
+    '''
+    df = df.copy()
+    df['time_index'] = df.groupby('subject_id').cumcount()
+    df['norm_time'] = df['time_index'] / df.groupby('subject_id')['time_index'].transform('max')
+    return df
+
+
