@@ -15,6 +15,7 @@ class SleepLSTM(nn.Module):
         self.bidirectional = bidirectional
         self.hidden = hidden_size
         self.num_directions = 2 if bidirectional else 1
+        self.attn_layer = nn.Linear(self.hidden * self.num_directions, 1)
 
         self.lstm = nn.LSTM(
             input_size=input_size, 
@@ -35,17 +36,15 @@ class SleepLSTM(nn.Module):
     # Take last timestep output; pass it through fc() 
     # `logits` produced... feed into CrossEntropyLoss 
     def forward(self, x):
-        # x: (batch, seq_len, input_size) 
-        output, (hn, cn) = self.lstm(x)
+        # x: (batch, seq_len, input_size)
+        output, (hn, cn) = self.lstm(x)  # output: (batch, seq_len, hidden_size * num_directions)
 
-        if self.lstm.bidirectional:
-            # Concat last hidden states from both directions
-            # hn shape: (num_layers * num_directions, batch, hidden_size)
-            # SO: grab [-2] for the last forward layer, [-1] for backward
-            last_hidden = torch.cat((hn[-2], hn[-1]), dim=1) # shape: (batch, 2*hidden_size)
-        else:
-            last_hidden = hn[-1] # shape: (batch, num_classes)
+        # Attention: score each timestep
+        attn_scores = self.attn_layer(output)  # (batch, seq_len, 1)
+        attn_weights = torch.softmax(attn_scores, dim=1)  # (batch, seq_len, 1)
 
-        logits = self.fc(last_hidden) # (batch, num_classes) 
+        # Weighted sum across all time steps
+        context = torch.sum(attn_weights * output, dim=1)  # (batch, hidden_size * num_directions)
+
+        logits = self.fc(context)  # (batch, num_classes)
         return logits
-    
