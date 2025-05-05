@@ -53,6 +53,11 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         df_train[label_col] = le.fit_transform(df_train[label_col])
         df_test[label_col] = le.fit_transform(df_test[label_col]) 
 
+        print('Training label dist:')
+        print(df_train[label_col].value_counts())
+        print('Validation label dist:')
+        print(df_test[label_col].value_counts())
+
         # Dataset + DataLoaders
         train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size)
         test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size) 
