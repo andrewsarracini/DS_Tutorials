@@ -15,8 +15,8 @@ import numpy as np
 import pandas as pd
 
 def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
-              model_params=None, window_size=10, batch_size=32,
-              lr=1e-3, n_epochs=10, target_subject=None, 
+              model_params=None, window_size=10, stride=None, 
+              batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
               verbose=True, device=None, bidirectional=False):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
@@ -65,8 +65,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 print(f'[DEBUG] Class Weights (multi): {class_weights}')
 
         # Dataset + DataLoaders
-        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size)
-        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size) 
+        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride)
+        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride) 
 
         train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
         test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False) 

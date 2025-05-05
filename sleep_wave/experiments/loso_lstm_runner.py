@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--bidirectional', action='store_true', help='Use bidirectional LSTM')
     parser.add_argument('--dropout', type=float, default=0.0, help='Dropout between LSTM layers (only used if num_layers > 1)')
     parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
+    parser.add_argument('--stride', type=int, default=None, help='Stride for LSTM windowing, default:None')
 
     args = parser.parse_args()
 
@@ -37,6 +38,7 @@ def main():
         target_subject=args.subject,
         label_col=target_col,
         window_size=args.seq_len, 
+        stride=args.stride,
         model_params={
             'hidden_size': args.hidden_size,
             'dropout': args.dropout, 

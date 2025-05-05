@@ -3,30 +3,38 @@ from torch.utils.data import Dataset
 import pandas as pd
 
 class LSTMDataset(Dataset): 
-    def __init__(self, df: pd.DataFrame, feature_cols, label_col='label', window_size=10):
+    def __init__(self, df: pd.DataFrame, feature_cols, label_col='label', 
+                 window_size=10, stride=None):
         '''
-        Converts a df into rolling sequences for LSTM input
+        Converts a df into rolling sequences for LSTM input, optional overlap via stride
 
         Args: 
             df: pandas df with sequential data 
             feature_cols (list): Which cols to use as feats
             label_col (str): Col name of hte target label
             window_size (int): How many timesteps / sequence 
+            stride (int): Step size between window starts (default: no overlap)
+
         '''
         self.features = df[feature_cols].values
         self.labels = df[label_col].values
         self.window_size = window_size
+        self.stride = stride if stride is not None else window_size
+
+        # Precompute all valid start indices
+        self.start_indices = list(range(0, len(self.features) - window_size +1, self.stride))
 
     def __len__(self): 
         # Total number of rolling sequences we can create
-        return len(self.features) - self.window_size + 1 
+        return len(self.start_indices)
     
     def __getitem__(self, idx): 
-        # Return one windowed sequence and its label 
-        x_seq = self.features[idx: idx + self.window_size]
-        y = self.labels[idx + self.window_size - 1] # timestep label
+        start_idx = self.start_indices[idx]
+        x_seq = self.features[start_idx : start_idx + self.window_size]
+        y = self.labels[start_idx + self.window_size - 1]
         
         return torch.tensor(x_seq, dtype=torch.float32), torch.tensor(y, dtype=torch.long)
+
 
 
 # === WHAT DOES THIS DO? ===
