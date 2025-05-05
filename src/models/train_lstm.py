@@ -2,6 +2,7 @@
 
 import torch
 import torch.nn as nn
+import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score
 from src.logger_setup import logger
 
@@ -77,6 +78,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 preds = torch.argmax(outputs, dim=1)
                 all_preds.extend(preds.cpu().numpy())
                 all_targets.extend(targets.cpu().numpy()) 
+
+            print("[DEBUG] Pred label counts:", pd.Series(all_preds).value_counts())
+            print("[DEBUG] True label counts:", pd.Series(all_targets).value_counts())
 
             # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
