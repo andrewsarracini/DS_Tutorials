@@ -26,7 +26,9 @@ class SleepLSTM(nn.Module):
         )
         # final layer
         # transforms last hidden state -> logits over class scores
-        self.fc = nn.Linear(hidden_size, num_classes) 
+        # if needed-- double output size if bidirectional!
+        direction_factor = 2 if bidirectional else 1
+        self.fc = nn.Linear(hidden_size * direction_factor, num_classes)
 
     # output sequence of hidden states (discard all but the last!) 
     # hn, cn: hidden cell states 
@@ -35,7 +37,15 @@ class SleepLSTM(nn.Module):
     def forward(self, x):
         # x: (batch, seq_len, input_size) 
         output, (hn, cn) = self.lstm(x)
-        last_hidden = output[:,-1, :] # Take last time step
+
+        if self.lstm.bidirectional:
+            # Concat last hidden states from both directions
+            # hn shape: (num_layers * num_directions, batch, hidden_size)
+            # SO: grab [-2] for the last forward layer, [-1] for backward
+            last_hidden = torch.cat((hn[-2], hn[-1]), dim=1) # shape: (batch, 2*hidden_size)
+        else:
+            last_hidden = hn[-1] # shape: (batch, num_classes)
+
         logits = self.fc(last_hidden) # (batch, num_classes) 
         return logits
     
