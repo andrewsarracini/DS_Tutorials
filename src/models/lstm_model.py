@@ -9,13 +9,17 @@ import torch.nn as nn
 
 class SleepLSTM(nn.Module):
     def __init__(self, input_size, hidden_size=64, num_layers=1, 
-                 num_classes=5, dropout=0.0, bidirectional=False):
+                 num_classes=5, dropout=0.0, bidirectional=False,
+                 use_attention=False):
         super(SleepLSTM, self).__init__()
 
         self.bidirectional = bidirectional
         self.hidden = hidden_size
         self.num_directions = 2 if bidirectional else 1
-        self.attn_layer = nn.Linear(self.hidden * self.num_directions, 1)
+        self.use_attention = use_attention
+        
+        if self.use_attention:
+            self.attn_layer = nn.Linear(self.hidden * self.num_directions, 1)
 
         self.lstm = nn.LSTM(
             input_size=input_size, 
@@ -36,15 +40,19 @@ class SleepLSTM(nn.Module):
     # Take last timestep output; pass it through fc() 
     # `logits` produced... feed into CrossEntropyLoss 
     def forward(self, x):
-        # x: (batch, seq_len, input_size)
         output, (hn, cn) = self.lstm(x)  # output: (batch, seq_len, hidden_size * num_directions)
 
-        # Attention: score each timestep
-        attn_scores = self.attn_layer(output)  # (batch, seq_len, 1)
-        attn_weights = torch.softmax(attn_scores, dim=1)  # (batch, seq_len, 1)
-
-        # Weighted sum across all time steps
-        context = torch.sum(attn_weights * output, dim=1)  # (batch, hidden_size * num_directions)
+        if self.use_attention:
+            # Apply attention to outputs over time
+            attn_scores = self.attn_layer(output)  # (batch, seq_len, 1)
+            attn_weights = torch.softmax(attn_scores, dim=1)
+            context = torch.sum(attn_weights * output, dim=1)  # (batch, hidden_size * num_directions)
+        else:
+            # Use final hidden state(s) without attention
+            if self.bidirectional:
+                context = torch.cat((hn[-2], hn[-1]), dim=1)  # (batch, 2 * hidden_size)
+            else:
+                context = hn[-1]  # (batch, hidden_size)
 
         logits = self.fc(context)  # (batch, num_classes)
         return logits

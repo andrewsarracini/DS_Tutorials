@@ -17,7 +17,8 @@ import pandas as pd
 def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               model_params=None, window_size=10, stride=None, 
               batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
-              verbose=True, device=None, bidirectional=False):
+              verbose=True, device=None, bidirectional=False,
+              dropout=0.0, num_layers=1, use_attention=False):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
 
@@ -85,7 +86,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
             num_layers=model_params.get('num_layers', 1),
             num_classes=num_classes, 
             dropout=model_params.get('dropout', 0.0), 
-            bidirectional=bidirectional
+            bidirectional=bidirectional,
+            use_attention=use_attention
         ) 
         
         optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr) 

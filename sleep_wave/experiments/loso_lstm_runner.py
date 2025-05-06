@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.0, help='Dropout between LSTM layers (only used if num_layers > 1)')
     parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
     parser.add_argument('--stride', type=int, default=None, help='Stride for LSTM windowing, default:None')
+    parser.add_argument('--use_attention', action='store_true', help='Use attention mechanism in LSTM')
 
     args = parser.parse_args()
 
@@ -46,7 +47,8 @@ def main():
         },
         bidirectional=args.bidirectional,
         n_epochs=args.epochs,
-        lr=args.lr
+        lr=args.lr, 
+        use_attention=args.use_attention
     )
 
 if __name__ == '__main__':
