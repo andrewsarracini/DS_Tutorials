@@ -424,4 +424,4 @@ def print_eval_summary(preds, targets, encoder_path):
         "Actual Count": [true_counts[label] for label in le.classes_]
     })
 
-    logger.info("\n📦 Class Distribution:\n" + dist_df.to_string(index=False))
+    logger.info("\n[Class Distribution]\n" + dist_df.to_string(index=False))
