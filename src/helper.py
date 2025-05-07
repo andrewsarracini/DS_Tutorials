@@ -401,7 +401,7 @@ def print_eval_summary(preds, targets, encoder_path):
         target (list[int]): Ground-truth label indices
         encoder_path (str or Path): Path to saved LabelEncoder .pkl
     '''
-    le = joblib(Path(encoder_path))
+    le = joblib.load(Path(encoder_path)) 
     decoded_preds = le.inverse_transform(preds)
     decoded_targets = le.inverse_transform(targets)
 
