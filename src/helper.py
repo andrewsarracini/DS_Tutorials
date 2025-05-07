@@ -390,6 +390,8 @@ from sklearn.metrics import confusion_matrix
 from collections import Counter
 import pandas as pd
 from pathlib import Path
+from src.logger_setup import logger
+
 import joblib
 
 def print_eval_summary(preds, targets, encoder_path): 
@@ -416,7 +418,10 @@ def print_eval_summary(preds, targets, encoder_path):
     pred_counts = Counter(decoded_preds)
     true_counts = Counter(decoded_targets)
 
-    for label in le.classes_:
-        pred = pred_counts[label]
-        true = true_counts[label]
-        print(f"  {label:<5}: predicted={pred:<4} | actual={true}")
+    dist_df = pd.DataFrame({
+        "Label": le.classes_,
+        "Predicted Count": [pred_counts[label] for label in le.classes_],
+        "Actual Count": [true_counts[label] for label in le.classes_]
+    })
+
+    logger.info("\n📦 Class Distribution:\n" + dist_df.to_string(index=False))

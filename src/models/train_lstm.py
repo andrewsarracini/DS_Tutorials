@@ -79,8 +79,8 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 all_preds.extend(preds.cpu().numpy())
                 all_targets.extend(targets.cpu().numpy()) 
 
-            print(f'[DEBUG] Pred label counts: \n{pd.Series(all_preds).value_counts()}')
-            print(f'[DEBUG] True label counts: \n{pd.Series(all_targets).value_counts()}')
+            # logger.debug("Pred label counts:\n%s", pd.Series(preds.cpu().numpy()).value_counts())
+            # logger.debug("True label counts:\n%s", pd.Series(targets.cpu().numpy()).value_counts())
 
             # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
