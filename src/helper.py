@@ -384,3 +384,39 @@ def compare_probs(model, calibrated_model, X_val, y_val):
 
 
 # EEG_FILE = resolve_path('data', 'eeg_hypno.csv')
+
+
+from sklearn.metrics import confusion_matrix
+from collections import Counter
+import pandas as pd
+from pathlib import Path
+import joblib
+
+def print_eval_summary(preds, targets, encoder_path): 
+    '''
+    Prints a readable confusion matrix and class distribution summary
+
+    Args: 
+        preds (list[int]): Predicted label indices
+        target (list[int]): Ground-truth label indices
+        encoder_path (str or Path): Path to saved LabelEncoder .pkl
+    '''
+    le = joblib(Path(encoder_path))
+    decoded_preds = le.inverse_transform(preds)
+    decoded_targets = le.inverse_transform(targets)
+
+    # 1. === Confusion Matrix === 
+    print("\n📉 Confusion Matrix (rows = actual, cols = predicted):")
+    cm = confusion_matrix(decoded_targets, decoded_preds, labels=le.classes_)
+    cm_df = pd.DataFrame(cm, index=le.classes_, columns=le.classes_)
+    print(cm_df.to_string())
+
+    # === 2. Class distribution
+    print("\n📦 Class Distribution:")
+    pred_counts = Counter(decoded_preds)
+    true_counts = Counter(decoded_targets)
+
+    for label in le.classes_:
+        pred = pred_counts[label]
+        true = true_counts[label]
+        print(f"  {label:<5}: predicted={pred:<4} | actual={true}")
