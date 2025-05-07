@@ -13,6 +13,7 @@ from src.logger_setup import logger
 
 import numpy as np
 import pandas as pd
+import joblib
 
 def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               model_params=None, window_size=10, stride=None, 
