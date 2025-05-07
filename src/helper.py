@@ -420,8 +420,9 @@ def print_eval_summary(preds, targets, encoder_path):
 
     dist_df = pd.DataFrame({
         "Label": le.classes_,
-        "Predicted Count": [pred_counts[label] for label in le.classes_],
-        "Actual Count": [true_counts[label] for label in le.classes_]
+        "Predicted Count": [pred_counts.get(label, 0) for label in le.classes_],
+        "Actual Count": [true_counts.get(label, 0) for label in le.classes_]
     })
 
-    logger.info("\n[Class Distribution]\n" + dist_df.to_string(index=False))
+    logger.info("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
+    print("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
