@@ -4,7 +4,7 @@ import pandas as pd
 
 class LSTMDataset(Dataset): 
     def __init__(self, df: pd.DataFrame, feature_cols, label_col='label', 
-                 window_size=10, stride=None):
+                 window_size=10, stride=None, seq2seq=False):
         '''
         Converts a df into rolling sequences for LSTM input, optional overlap via stride
 
@@ -14,12 +14,13 @@ class LSTMDataset(Dataset):
             label_col (str): Col name of hte target label
             window_size (int): How many timesteps / sequence 
             stride (int): Step size between window starts (default: no overlap)
-
+            seq2seq (book): If True, returns label seq instead of singular final label
         '''
         self.features = df[feature_cols].values
         self.labels = df[label_col].values
         self.window_size = window_size
         self.stride = stride if stride is not None else window_size
+        self.seq2seq = seq2seq
 
         # Precompute all valid start indices
         self.start_indices = list(range(0, len(self.features) - window_size +1, self.stride))
@@ -30,10 +31,15 @@ class LSTMDataset(Dataset):
     
     def __getitem__(self, idx): 
         start_idx = self.start_indices[idx]
-        x_seq = self.features[start_idx : start_idx + self.window_size]
-        y = self.labels[start_idx + self.window_size - 1]
+        end_idx = start_idx + self.window_size
+
+        x_seq = self.features[start_idx:end_idx]
+        y_seq = self.labels[start_idx:end_idx] if self.seq2seq else self.labels[end_idx - 1]
+
+        x_tensor = torch.tensor(x_seq, dtype=torch.float32)
+        y_tensor = torch.tensor(y_seq, dtype=torch.long) 
         
-        return torch.tensor(x_seq, dtype=torch.float32), torch.tensor(y, dtype=torch.long)
+        return x_tensor, y_tensor 
 
 
 
