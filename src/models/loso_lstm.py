@@ -82,8 +82,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 print(f'[DEBUG] Class Weights (multi): {class_weights}')
 
         # Dataset + DataLoaders
-        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride, seq2seq=True)
-        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride, seq2seq=True) 
+        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride, seq2seq=False) #s2s False for now [DEBUG]!
+        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride, seq2seq=False) #s2s False for now [DEBUG]!
 
         print(f"[INFO] Train seqs: {len(train_ds)} | Val seqs: {len(test_ds)}")
 
