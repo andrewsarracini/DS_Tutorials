@@ -60,6 +60,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         df_test[label_col] = le.transform(df_test[label_col]) 
 
         # Saving encoder
+        ENCODER_DIR.mkdir(parents=True, exist_ok=True)
+
         encoder_path = ENCODER_DIR / f"label_encoder_s{subject}.pkl"
         joblib.dump(le, encoder_path)
 
