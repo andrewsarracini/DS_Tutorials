@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from sklearn.preprocessing import LabelEncoder
 
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import classification_report
 from sklearn.utils.class_weight import compute_class_weight
 
 from src.models.lstm_model import SleepLSTM
@@ -15,6 +15,7 @@ from src.logger_setup import logger
 import numpy as np
 import pandas as pd
 import joblib
+import tqdm
 
 from src.paths import ENCODER_DIR
 
@@ -135,11 +136,24 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 all_preds.extend(preds.cpu().numpy()) 
                 all_targets.extend(y.cpu().numpy()) 
 
-        acc = accuracy_score(all_targets, all_preds)
-        f1 = f1_score(all_targets, all_preds, average='weighted', zero_division=0) 
+        report = classification_report(
+            all_targets,
+            all_preds,
+            target_names=le.classes_,
+            zero_division=0, 
+            digits=4, 
+            output_dict=True
+        )
+
+        acc = report['accuracy']
+        f1 = report['weighted avg']['f1-score']
 
         if verbose: 
-            print(f"✅ Subject {subject} | Acc: {acc:.4f} | F1: {f1:.4f}")
+            logger.info('\n--- Per-Class F1 Scores ---') 
+            for label in le.classes_:
+                stats = report[label]
+                logger.info(f"{label:<5} | F1: {stats['f1-score']:.4f} | Precision: {stats['precision']:.4f} | Recall: {stats['recall']:.4f} | Support: {int(stats['support'])}")
+
             print_eval_summary(all_preds, all_targets, encoder_path)
 
         results[subject] = {
@@ -148,7 +162,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
             'weighted_f1': f1, 
             'all_preds': all_preds, 
             'all_targets': all_targets,
-            'encoder_path': str(encoder_path) 
+            'encoder_path': str(encoder_path),
+            'report': report
         }
 
     return results 

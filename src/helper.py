@@ -408,13 +408,12 @@ def print_eval_summary(preds, targets, encoder_path):
     decoded_targets = le.inverse_transform(targets)
 
     # 1. === Confusion Matrix === 
-    print("\n📉 Confusion Matrix (rows = actual, cols = predicted):")
+    print("--- Confusion Matrix ---")
     cm = confusion_matrix(decoded_targets, decoded_preds, labels=le.classes_)
     cm_df = pd.DataFrame(cm, index=le.classes_, columns=le.classes_)
     print(cm_df.to_string())
 
     # === 2. Class distribution
-    print("\n📦 Class Distribution:")
     pred_counts = Counter(decoded_preds)
     true_counts = Counter(decoded_targets)
 
