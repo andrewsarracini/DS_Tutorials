@@ -17,7 +17,7 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
         dataloaders (dict): Must contain 'train' and 'val' DataLoaders
         optimizer (torch.optim.Optimizer): ex. Adam
         loss_fn (torch.nn.Module): loss function, ex. CrossEntropyLoss
-        devide (torch.device): torch.device('cuda' or 'cpu') 
+        device (torch.device): torch.device('cuda' or 'cpu') 
         n_epochs (int): Number of training epochs
         verbose (bool): Whether to print progress
 
@@ -46,6 +46,10 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
             optimizer.zero_grad()
             outputs = model(inputs) 
 
+            # Flattening for seq2seq loss
+            outputs = outputs.view(-1, outputs.size(-1)) # (batch * seq_len, num_classes)
+            targets = targets.view(-1)                   # (batch * seq_len) 
+
             # compute the loss 
             # `.backward` computes gradients
             # `.step` updates model weights
@@ -72,15 +76,12 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 inputs, targets = inputs.to(device), targets.to(device) 
 
                 outputs = model(inputs)
-                loss = loss_fn(outputs, targets) 
+                loss = loss_fn(outputs.view(-1, outputs.size(-1)), targets.view(-1,)) 
                 val_loss += loss.item()
 
-                preds = torch.argmax(outputs, dim=1)
-                all_preds.extend(preds.cpu().numpy())
-                all_targets.extend(targets.cpu().numpy()) 
-
-            # logger.debug("Pred label counts:\n%s", pd.Series(preds.cpu().numpy()).value_counts())
-            # logger.debug("True label counts:\n%s", pd.Series(targets.cpu().numpy()).value_counts())
+                preds = torch.argmax(outputs, dim=-1) # shape: (batch, seq_len)
+                all_preds.extend(preds.cpu().numpy().flatten())
+                all_targets.extend(targets.cpu().numpy().flatten())
 
             # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
