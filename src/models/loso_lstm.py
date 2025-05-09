@@ -23,7 +23,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               model_params=None, window_size=10, stride=None, 
               batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
               verbose=True, device=None, bidirectional=False,
-              dropout=0.0, num_layers=1, use_attention=False):
+              dropout=0.0, num_layers=1):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
 
@@ -83,8 +83,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 print(f'[DEBUG] Class Weights (multi): {class_weights}')
 
         # Dataset + DataLoaders
-        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride, seq2seq=False) #s2s False for now [DEBUG]!
-        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride, seq2seq=False) #s2s False for now [DEBUG]!
+        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride) 
+        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride) 
 
         print(f"[INFO] Train seqs: {len(train_ds)} | Val seqs: {len(test_ds)}")
 
@@ -103,8 +103,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
             num_layers=model_params.get('num_layers', 1),
             num_classes=num_classes, 
             dropout=model_params.get('dropout', 0.0), 
-            bidirectional=bidirectional,
-            use_attention=use_attention
+            bidirectional=bidirectional
         ) 
         
         optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr) 
