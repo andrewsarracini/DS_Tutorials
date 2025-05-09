@@ -135,6 +135,10 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 all_preds.extend(preds.cpu().numpy()) 
                 all_targets.extend(y.cpu().numpy()) 
 
+                # Flattening to deal with sklearn interaction with 2d arrays
+                all_preds = np.array(all_preds).flatten()
+                all_targets = np.array(all_targets).flatten() 
+
         report = classification_report(
             all_targets,
             all_preds,
