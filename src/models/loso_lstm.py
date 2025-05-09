@@ -130,10 +130,13 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 x, y = x.to(device), y.to(device) 
 
                 logits = lstm_model(x)
-                preds = torch.argmax(logits, dim=1) 
+                preds = torch.argmax(logits, dim=-1) 
 
                 all_preds.extend(preds.cpu().numpy().flatten())
                 all_targets.extend(y.cpu().numpy().flatten()) 
+
+        all_preds = np.concatenate(all_preds, axis=0).reshape(-1)
+        all_targets = np.concatenate(all_targets, axis=0).reshape(-1) 
 
         report = classification_report(
             all_targets,
