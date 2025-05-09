@@ -132,11 +132,12 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 logits = lstm_model(x)
                 preds = torch.argmax(logits, dim=-1) 
 
-                all_preds.extend(preds.cpu().numpy().flatten())
-                all_targets.extend(y.cpu().numpy().flatten()) 
+                all_preds.append(preds.cpu().numpy().reshape(-1))
+                all_targets.append(y.cpu().numpy().np.reshape(-1))
 
-        all_preds = np.concatenate(all_preds, axis=0).reshape(-1)
-        all_targets = np.concatenate(all_targets, axis=0).reshape(-1) 
+        # Flatten to match sklearn expectations!
+        all_preds = np.concatenate(all_preds)
+        all_targets = np.concatenate(all_targets)
 
         report = classification_report(
             all_targets,
