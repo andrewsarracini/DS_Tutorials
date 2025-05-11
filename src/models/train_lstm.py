@@ -84,6 +84,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 outputs = model(inputs)
 
                 if is_binary:
+                    if outputs.shape[-1] == 1:
+                        outputs = outputs.squeeze(-1)
+
                     outputs_flat = outputs.view(-1) 
                     targets_flat = targets.view(-1) 
                 else:
@@ -103,15 +106,8 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 else: 
                     preds = torch.argmax(outputs, dim=-1) 
 
-                # if preds.shape[-1] == 1:
-                #     preds = preds.squeeze(-1)
-
                 all_preds.extend(preds.cpu().numpy().flatten())
                 all_targets.extend(targets.cpu().numpy().flatten()) 
-
-                # preds = torch.argmax(outputs, dim=-1) # shape: (batch, seq_len)
-                # all_preds.extend(preds.cpu().numpy().flatten())
-                # all_targets.extend(targets.cpu().numpy().flatten())
 
             print("Pred shape:", preds.shape, "| Target shape:", targets.shape)
 
