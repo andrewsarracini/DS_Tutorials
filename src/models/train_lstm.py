@@ -87,6 +87,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 else: 
                     preds = torch.argmax(outputs, dim=-1) 
 
+                if preds.shape[-1] == 1:
+                    preds = preds.squeeze(-1)
+                    
                 all_preds.extend(preds.cpu().numpy().flatten())
                 all_targets.extend(targets.cpu().numpy().flatten()) 
 
