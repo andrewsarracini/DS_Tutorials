@@ -84,18 +84,24 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 if is_binary: 
                     probs = torch.sigmoid(outputs)
                     preds = (probs > threshold).long()
+
+                    preds = preds.view(-1) # Fixing shape: (batch * seq_len)
+                    targets = targets.view(-1) # Ensuer targets are also flattened
                 else: 
                     preds = torch.argmax(outputs, dim=-1) 
 
-                if preds.shape[-1] == 1:
-                    preds = preds.squeeze(-1)
-                    
+                # if preds.shape[-1] == 1:
+                #     preds = preds.squeeze(-1)
+
                 all_preds.extend(preds.cpu().numpy().flatten())
                 all_targets.extend(targets.cpu().numpy().flatten()) 
 
                 # preds = torch.argmax(outputs, dim=-1) # shape: (batch, seq_len)
                 # all_preds.extend(preds.cpu().numpy().flatten())
                 # all_targets.extend(targets.cpu().numpy().flatten())
+
+                print("Pred shape:", preds.shape, "| Target shape:", targets.shape)
+
 
             # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
