@@ -108,7 +108,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         ) 
         
         optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr) 
-        loss_fn = nn.CrossEntropyLoss(weight=class_weights) 
+        if loss_fn is None: 
+            loss_fn = nn.CrossEntropyLoss(weight=class_weights) 
 
         # Now train the model using `train_lstm` 
         lstm_model = train_lstm(
