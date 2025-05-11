@@ -1,6 +1,6 @@
 import argparse
-from unicodedata import bidirectional 
 import torch
+import torch.nn as nn 
 
 from src.paths import DATA_DIR
 from src.models.loso_lstm import loso_lstm
@@ -10,7 +10,9 @@ from src.utils.loaders import load_eeg_data
 import pandas as pd
 
 def main(): 
-    parser = get_common_arg_parser() 
+    parser = get_common_arg_parser()
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Now adding LSTM-specific options!
     parser.add_argument('--epochs', type=int, default=10, help='Number of training epochs') 
@@ -30,6 +32,20 @@ def main():
     # Load the data!
     # df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
     df = load_eeg_data('eeg_hypno.csv')
+
+    if args.binary:
+        # Count ratio for pos_weight = (#negative / #positive)
+        class_counts = df['binary_label'].value_counts().to_dict()
+        neg_count = class_counts.get(0,1) 
+        pos_count = class_counts.get(1,1) 
+        imbalance_ratio = neg_count / pos_count
+        
+        print(f'[INFO] Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
+
+        pos_weight = torch.tensor([imbalance_ratio]).to(device)
+        loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    else: 
+        loss_fn = nn.CrossEntropyLoss()
 
     target_col = 'binary_label' if args.binary else 'label'
     non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}
