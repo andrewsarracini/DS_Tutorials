@@ -3,14 +3,14 @@
 import torch
 import torch.nn as nn
 import pandas as pd
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from src.logger_setup import logger
 
 def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optimizer,
                loss_fn: torch.nn.Module, device: torch.device, n_epochs=10, 
-               verbose=True):
+               verbose=True, is_binary=False, threshold=0.5):
     '''
-    Trains a PyTorch LSTM model using epoch-based loop 
+    Trains a PyTorch LSTM model using epoch-based loop with binary or multiclass support
 
     Args: 
         model (nn.Module): LSTM model 
@@ -20,6 +20,8 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
         device (torch.device): torch.device('cuda' or 'cpu') 
         n_epochs (int): Number of training epochs
         verbose (bool): Whether to print progress
+        is_binary (bool): Whether it's a binary classification
+        threshold (float): Thresh for sigmoid output in binary class
 
     Returns: 
         model: Trained Model
@@ -79,14 +81,31 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 loss = loss_fn(outputs.view(-1, outputs.size(-1)), targets.view(-1,)) 
                 val_loss += loss.item()
 
-                preds = torch.argmax(outputs, dim=-1) # shape: (batch, seq_len)
+                if is_binary: 
+                    probs = torch.sigmoid(outputs)
+                    preds = (probs > threshold).long()
+                else: 
+                    preds = torch.argmax(outputs, dim=-1) 
+
                 all_preds.extend(preds.cpu().numpy().flatten())
-                all_targets.extend(targets.cpu().numpy().flatten())
+                all_targets.extend(targets.cpu().numpy().flatten()) 
+
+                # preds = torch.argmax(outputs, dim=-1) # shape: (batch, seq_len)
+                # all_preds.extend(preds.cpu().numpy().flatten())
+                # all_targets.extend(targets.cpu().numpy().flatten())
 
             # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
-            f1 = f1_score(all_targets, all_preds, average='weighted', zero_division=0)
 
+            if is_binary: 
+                f1 = f1_score(all_targets, all_preds, average='binary', zero_division=0)
+                precision = precision_score(all_targets, all_preds, zero_division=0)
+                recall = recall_score(all_targets, all_preds, zero_division=0) 
+                if verbose: 
+                    print(f"Precision: {precision:.4f} | Recall: {recall:.4f}")
+            else: 
+                f1 = f1_score(all_targets, all_preds, average='weighted', zero_division=0)
+    
             if verbose:
                 print(f"[Epoch {epoch+1}/{n_epochs}] "
                     f"Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | "

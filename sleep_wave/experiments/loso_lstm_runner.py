@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.0, help='Dropout between LSTM layers (only used if num_layers > 1)')
     parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
     parser.add_argument('--stride', type=int, default=None, help='Stride for LSTM windowing, default:None')
+    parser.add_argument('--threshold', type=float, default=0.5, help='Thresh for sigmoid output in binary classification')
 
     args = parser.parse_args()
 
@@ -49,6 +50,8 @@ def main():
         bidirectional=args.bidirectional,
         n_epochs=args.epochs,
         lr=args.lr, 
+        is_binary=args.binary,
+        threshold=args.threshold
     )
 
 if __name__ == '__main__':

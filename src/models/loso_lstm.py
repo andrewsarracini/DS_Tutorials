@@ -117,7 +117,9 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
             loss_fn=loss_fn,
             device=device, 
             n_epochs=n_epochs,
-            verbose=verbose
+            verbose=verbose, 
+            is_binary=True, 
+            threshold=0.45
         )
 
         # Final Eval on the test set
