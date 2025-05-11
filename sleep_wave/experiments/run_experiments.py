@@ -16,6 +16,7 @@ from sleep_wave.features.registry import register_all_features
 from src.paths import DATA_DIR, LOG_DIR
 from src.models.loso import loso_full
 from sleep_wave.cli.cli_utils import get_common_arg_parser, resolve_feats_to_run
+from src.utils.loaders import load_eeg_data
 
 def run_feature_experiment_loso(
         df:pd.DataFrame,
@@ -112,7 +113,8 @@ def main():
     parser = get_common_arg_parser()
     args = parser.parse_args()
 
-    df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
+    # df_edf = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
+    df_edf = load_eeg_data('eeg_hypno.csv')
     all_features = register_all_features() 
     results_log = []
 

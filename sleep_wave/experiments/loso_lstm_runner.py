@@ -27,7 +27,8 @@ def main():
     print('\nStarting LSTM LOSO experiment...')
 
     # Load the data!
-    df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
+    # df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
+    df = load_eeg_data('eeg_hypno.csv')
 
     target_col = 'binary_label' if args.binary else 'label'
     non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}
