@@ -82,13 +82,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 inputs, targets = inputs.to(device), targets.to(device) 
 
                 outputs = model(inputs)
-
                 if is_binary:
-                    if outputs.shape[-1] == 1:
-                        outputs = outputs.squeeze(-1)
-
-                    outputs_flat = outputs.view(-1) 
-                    targets_flat = targets.view(-1) 
+                    outputs_flat = outputs.view(-1)
+                    targets_flat = targets.view(-1)
                 else:
                     outputs_flat = outputs.view(-1, outputs.size(-1)) 
                     targets_flat = targets.view(-1) 
