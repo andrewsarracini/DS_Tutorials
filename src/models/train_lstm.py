@@ -49,8 +49,12 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
             outputs = model(inputs) 
 
             # Flattening for seq2seq loss
-            outputs = outputs.view(-1, outputs.size(-1)) # (batch * seq_len, num_classes)
-            targets = targets.view(-1)                   # (batch * seq_len) 
+            if is_binary: 
+                outputs = outputs.view(-1) # (batch * seq_len) 
+                targets = targets.view(-1) 
+            else: 
+                outputs = outputs.view(-1, outputs.size(-1)) # logits (batch* seq_len, num_classes)
+                targets = targets.view(-1) 
 
             # compute the loss 
             # `.backward` computes gradients
@@ -78,7 +82,16 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 inputs, targets = inputs.to(device), targets.to(device) 
 
                 outputs = model(inputs)
-                loss = loss_fn(outputs.view(-1, outputs.size(-1)), targets.view(-1,)) 
+
+                if is_binary:
+                    outputs_flat = outputs.view(-1) 
+                    targets_flat = targets.view(-1) 
+                else:
+                    outputs_flat = outputs.view(-1, outputs.size(-1)) 
+                    targets_flat = targets.view(-1) 
+                
+                loss = loss_fn(outputs_flat, targets_flat)
+
                 val_loss += loss.item()
 
                 if is_binary: 
@@ -100,8 +113,7 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 # all_preds.extend(preds.cpu().numpy().flatten())
                 # all_targets.extend(targets.cpu().numpy().flatten())
 
-                print("Pred shape:", preds.shape, "| Target shape:", targets.shape)
-
+            print("Pred shape:", preds.shape, "| Target shape:", targets.shape)
 
             # sklearn metrics
             acc = accuracy_score(all_targets, all_preds) 
