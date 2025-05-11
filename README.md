@@ -42,15 +42,36 @@ Many core ideas from this pipeline laid the foundation for the `sleep_wave` proj
 ## Repository Structure
 
 ```bash
-.
-├── sleep_wave/            # Sleep stage classification system
-│   ├── data/              # Raw EDF files and annotations
-│   ├── features/          # Feature builders (bandpower, entropy, etc.)
-│   ├── models/            # LSTM + HMM model architectures
-│   ├── experiments/       # Training and evaluation runners
-│   └── utils/             # Helpers for preprocessing and cycles
-├── pipeline_project/      # Standalone ML pipeline
-├── notebooks/             # Exploratory Jupyter notebooks
-├── requirements.txt       # Dependencies
-└── README.md              # You're here!
+DS_Tutorials/
+│
+├── data/                    # Raw datasets for various projects
+│   ├── Breast_Cancer.csv
+│   ├── eeg_hypno.csv
+│   └── sleep_waves/        # Full Sleep-EDFx dataset (.edf and hypnogram files)
+│
+├── sleep_wave/             # Main package for sleep stage classification
+│   ├── cli/                # Command-line utilities
+│   ├── experiments/        # Experiment runners (batch, LOSO, etc.)
+│   ├── features/           # Feature engineering and registry
+│   ├── models/             # Model interface or wrappers
+│
+├── src/                    # Shared source code (EDA, training, pipelines)
+│   ├── datasets/           # Custom dataset classes (e.g., LSTM sequence input)
+│   ├── models/             # Model definitions (LSTM, LOSO, etc.)
+│   ├── utils/              # Utility functions (e.g., loaders)
+│   ├── sleep_plots/        # (Empty or plotting-related work)
+│   └── *.py                # Pipeline logic, evaluation, cleaning, training
+│
+├── models/                 # Saved model pickles (.pkl) and label encoders
+│   └── label_encoders/
+│
+├── logs/                   # Model logs, evaluation outputs, tracking CSVs
+│
+├── tuned_params/           # JSON files with best hyperparameters
+│
+├── Tutorials/              # Legacy and exploratory notebooks
+│   ├── pipeline_project.ipynb
+│   ├── wave_analysis.ipynb
+│   └── synthetic_gen.ipynb
+
 
