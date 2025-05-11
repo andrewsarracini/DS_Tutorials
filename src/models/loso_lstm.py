@@ -23,7 +23,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               model_params=None, window_size=10, stride=None, 
               batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
               verbose=True, device=None, bidirectional=False,
-              dropout=0.0, num_layers=1, loss_fn = None,
+              dropout=0.0, num_layers=1, loss_fn=None,
               is_binary=False, threshold=0.5):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM

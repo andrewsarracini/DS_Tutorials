@@ -39,7 +39,7 @@ def main():
         neg_count = class_counts.get(0,1) 
         pos_count = class_counts.get(1,1) 
         imbalance_ratio = neg_count / pos_count
-        
+
         print(f'[INFO] Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
 
         pos_weight = torch.tensor([imbalance_ratio]).to(device)
@@ -66,6 +66,7 @@ def main():
         bidirectional=args.bidirectional,
         n_epochs=args.epochs,
         lr=args.lr, 
+        loss_fn=loss_fn,
         is_binary=args.binary,
         threshold=args.threshold
     )
