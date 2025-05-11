@@ -5,6 +5,7 @@ import torch
 from src.paths import DATA_DIR
 from src.models.loso_lstm import loso_lstm
 from sleep_wave.cli.cli_utils import get_common_arg_parser
+from src.utils.loaders import load_eeg_data
 
 import pandas as pd
 
