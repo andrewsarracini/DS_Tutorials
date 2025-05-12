@@ -58,7 +58,8 @@ def main():
         loss_fn=None,
         is_binary=args.binary,
         threshold=args.threshold,
-        plot_thresholds=args.plot_thresholds
+        plot_thresholds=args.plot_thresholds,
+        auto_thresh=args.auto_thresh
     )
 
 if __name__ == '__main__':

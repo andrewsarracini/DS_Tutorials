@@ -144,7 +144,10 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         all_probs = np.concatenate(all_probs) if is_binary else None
 
         if is_binary and auto_thresh:
-            best_thresh, best_score = find_best_threshold(all_targets, all_probs, metric='f1')
+            
+            from src.eval import find_best_thresh
+
+            best_thresh, best_score = find_best_thresh(all_targets, all_probs, metric='f1')
             threshold = best_thresh
             print(f'[AUTO] Best threshold found: {best_thresh:.2f}') 
         
