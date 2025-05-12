@@ -8,6 +8,8 @@ from sleep_wave.cli.cli_utils import get_common_arg_parser
 from src.utils.loaders import load_eeg_data
 
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 
 def main(): 
     parser = get_common_arg_parser()
@@ -24,6 +26,8 @@ def main():
     parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
     parser.add_argument('--stride', type=int, default=None, help='Stride for LSTM windowing, default:None')
     parser.add_argument('--threshold', type=float, default=0.5, help='Thresh for sigmoid output in binary classification')
+    parser.add_argument('--plot_thresholds', action='store_true', help='Plot ROC/PR curves after training (binary only)')
+
 
     args = parser.parse_args()
 
@@ -54,7 +58,8 @@ def main():
         lr=args.lr, 
         loss_fn=None,
         is_binary=args.binary,
-        threshold=args.threshold
+        threshold=args.threshold,
+        plot_thresholds=args.plot_thresholds
     )
 
 if __name__ == '__main__':

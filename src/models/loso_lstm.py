@@ -17,7 +17,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
               verbose=True, device=None, bidirectional=False,
               dropout=0.0, num_layers=1, loss_fn=None,
-              is_binary=False, threshold=0.5):
+              is_binary=False, threshold=0.5, plot_thresholds=False):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
 
@@ -140,6 +140,17 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         all_preds = np.concatenate(all_preds)
         all_targets = np.concatenate(all_targets)
         all_probs = np.concatenate(all_probs) if is_binary else None
+
+        if is_binary and plot_thresholds and all_probs is not None:
+            from src.eval import plot_threshold_curves 
+
+            plot_threshold_curves(
+                y_true=all_targets, 
+                y_probs=all_probs, 
+                model_name=f'LSTM_s{subject}',
+                highlight_threshold=threshold,
+                save_path=None
+            )
 
         report = classification_report(
             all_targets,
