@@ -10,6 +10,7 @@ from src.models.lstm_model import SleepLSTM
 from src.models.train_lstm import train_lstm
 from src.helper import build_dataloaders, encode_labels, print_eval_summary
 from src.logger_setup import logger
+from src.paths import PLOT_DIR
 
 
 def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
@@ -144,12 +145,14 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         if is_binary and plot_thresholds and all_probs is not None:
             from src.eval import plot_threshold_curves 
 
+            plot_path = PLOT_DIR / f'thresh_s{subject}.png'
+
             plot_threshold_curves(
                 y_true=all_targets, 
                 y_probs=all_probs, 
                 model_name=f'LSTM_s{subject}',
                 highlight_threshold=threshold,
-                save_path=None
+                save_path=plot_path
             )
 
         report = classification_report(

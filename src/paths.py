@@ -7,3 +7,4 @@ LOG_DIR = PARENT_DIR / "logs"
 MODEL_DIR = PARENT_DIR / "models"
 TUNED_PARAMS_DIR = PARENT_DIR / "tuned_params"
 ENCODER_DIR = MODEL_DIR / 'label_encoders'
+PLOT_DIR = PARENT_DIR / 'sleep_wave' / 'plots'
