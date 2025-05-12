@@ -147,6 +147,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
             best_thresh, best_score = find_best_threshold(all_targets, all_probs, metric='f1')
             threshold = best_thresh
             print(f'[AUTO] Best threshold found: {best_thresh:.2f}') 
+        
+            all_preds = (all_preds > threshold).astype(int)
 
         if is_binary and plot_thresholds and all_probs is not None:
             from src.eval import plot_threshold_curves 

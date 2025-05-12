@@ -25,6 +25,7 @@ def main():
     parser.add_argument('--stride', type=int, default=None, help='Stride for LSTM windowing, default:None')
     parser.add_argument('--threshold', type=float, default=0.5, help='Thresh for sigmoid output in binary classification')
     parser.add_argument('--plot_thresholds', action='store_true', help='Plot ROC/PR curves after training (binary only)')
+    parser.add_argument('--auto_thresh', action='store_true', help='Find threshold that maximizes F1 on validation set')
 
 
     args = parser.parse_args()
