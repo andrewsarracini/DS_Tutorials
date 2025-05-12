@@ -57,7 +57,7 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 outputs = outputs.squeeze(-1)
                 targets = targets  # shape: (batch, seq_len)
                 outputs = outputs.view(-1)
-                targets = targets.view(-1)
+                targets = targets.view(-1).float()
             else:
                 outputs = outputs.view(-1, outputs.size(-1))
                 targets = targets.view(-1)
@@ -100,7 +100,7 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                     outputs = outputs.squeeze(-1)
                     targets = targets
                     outputs_flat = outputs.view(-1)
-                    targets_flat = targets.view(-1)
+                    targets_flat = targets.view(-1).float()
                 else:
                     outputs_flat = outputs.view(-1, outputs.size(-1))
                     targets_flat = targets.view(-1)
