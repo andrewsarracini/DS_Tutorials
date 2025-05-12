@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
 
+from src.datasets.sequence_dataset import LSTMDataset
+
 # from tune.py
 def save_best_params(best_params, model_name, save_dir='../tuned_params'):
     '''
@@ -425,3 +427,37 @@ def print_eval_summary(preds, targets, encoder_path):
 
     logger.info("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
     print("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
+
+from src.paths import ENCODER_DIR
+
+# loso_lstm --- refactor
+def encode_labels(df_train, df_test, label_col, subject_id, save_dir=ENCODER_DIR):
+    le = LabelEncoder()
+    df_train[label_col] = le.fit_transform(df_train[label_col])
+    df_test[label_col] = le.transform(df_test[label_col])
+    
+    save_dir.mkdir(parents=True, exist_ok=True)
+    encoder_path = save_dir / f'le_s{subject_id}.pkl'
+    joblib.dump(le, encoder_path) 
+
+    with open(save_dir / f'classes_s{subject_id}.txt', 'w') as f:
+        for i, label in enumerate(le.classes_):
+            f.write(f'{i} = {label}\n')
+
+    return df_train, df_test, le, encoder_path
+
+# loso_lstm --- refactor 
+from src.datasets.sequence_dataset import LSTMDataset
+from torch.utils.data import DataLoader
+
+def build_dataloaders(df_train, df_test, feature_cols, label_col, window_size, stride, batch_size):
+    train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride)
+    test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride)
+
+    return {
+        'train': DataLoader(train_ds, batch_size=batch_size, shuffle=True),
+        'val': DataLoader(test_ds, batch_size=batch_size, shuffle=False)
+    }
+
+
+

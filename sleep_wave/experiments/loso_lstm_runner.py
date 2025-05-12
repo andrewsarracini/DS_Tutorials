@@ -34,6 +34,7 @@ def main():
     df = load_eeg_data('eeg_hypno.csv')
 
     if args.binary:
+        
         # Count ratio for pos_weight = (#negative / #positive)
         class_counts = df['binary_label'].value_counts().to_dict()
         neg_count = class_counts.get(0,1) 

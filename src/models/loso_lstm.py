@@ -1,23 +1,16 @@
 import torch
 import torch.nn as nn 
-from torch.utils.data import DataLoader
-from sklearn.preprocessing import LabelEncoder
+import numpy as np
+import pandas as pd
 
 from sklearn.metrics import classification_report
 from sklearn.utils.class_weight import compute_class_weight
 
 from src.models.lstm_model import SleepLSTM
 from src.models.train_lstm import train_lstm
-from src.datasets.sequence_dataset import LSTMDataset
-from src.helper import print_eval_summary
+from src.helper import build_dataloaders, encode_labels, print_eval_summary
 from src.logger_setup import logger
 
-import numpy as np
-import pandas as pd
-import joblib
-import tqdm
-
-from src.paths import ENCODER_DIR
 
 def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               model_params=None, window_size=10, stride=None, 
@@ -57,22 +50,10 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         df_train = df[df['subject_id'] != subject].reset_index(drop=True) 
         df_test = df[df['subject_id'] == subject].reset_index(drop=True) 
 
-        le = LabelEncoder()
-        df_train[label_col] = le.fit_transform(df_train[label_col])
-        df_test[label_col] = le.transform(df_test[label_col]) 
+        df_train, df_test, le, encoder_path = encode_labels(df_train, df_test,
+                                              label_col, subject)
 
-        # Saving encoder
-        ENCODER_DIR.mkdir(parents=True, exist_ok=True)
-
-        encoder_path = ENCODER_DIR / f"label_encoder_s{subject}.pkl"
-        joblib.dump(le, encoder_path)
-
-        # Save a readable class mapping .txt
-        class_map_path = ENCODER_DIR / f'classes_s{subject}.txt'
-        with open(class_map_path, 'w') as f:
-            for i, label in enumerate(le.classes_):
-                f.write(f'{i} = {label}\n')
-
+        # Class Weights 
         class_weights = None
         if df_train[label_col].nunique() > 2: # if multiclass: 
             classes = np.unique(df_train[label_col])
@@ -84,15 +65,9 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 print(f'[DEBUG] Class Weights (multi): {class_weights}')
 
         # Dataset + DataLoaders
-        train_ds = LSTMDataset(df_train, feature_cols, label_col, window_size, stride) 
-        test_ds = LSTMDataset(df_test, feature_cols, label_col, window_size, stride) 
-
-        print(f"[INFO] Train seqs: {len(train_ds)} | Val seqs: {len(test_ds)}")
-
-        train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
-        test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False) 
-
-        dataloaders = {'train': train_loader, 'val': test_loader}
+        dataloaders = build_dataloaders(df_train, df_test, feature_cols, 
+                                        label_col, window_size, stride, 
+                                        batch_size)
 
         # Initialize the model! 
         input_size = len(feature_cols)
@@ -129,7 +104,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         all_preds, all_targets = [], []
 
         with torch.no_grad():
-            for batch in test_loader:
+            for batch in dataloaders['val']:
                 x, y = batch
                 x, y = x.to(device), y.to(device) 
 
