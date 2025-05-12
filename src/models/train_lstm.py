@@ -48,6 +48,10 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
             optimizer.zero_grad()
             outputs = model(inputs) 
 
+            # DEBUG --- Training
+            if is_binary:
+                print(f"[TRAIN DEBUG] outputs raw: {outputs.shape}, targets: {targets.shape}")
+
             # Flattening for seq2seq loss
             if is_binary:
                 outputs = outputs.squeeze(-1)
@@ -57,6 +61,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
             else:
                 outputs = outputs.view(-1, outputs.size(-1))
                 targets = targets.view(-1)
+
+            print(f"[TRAIN DEBUG] after squeeze/view → outputs: {outputs.shape}, targets: {targets.shape}")
+            # DEBUG --- Training
 
             # compute the loss 
             # `.backward` computes gradients
@@ -85,6 +92,10 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
 
                 outputs = model(inputs)
 
+                # DEBUG --- VAL
+                if is_binary:
+                    print(f"[VAL DEBUG] outputs raw: {outputs.shape}, targets: {targets.shape}")
+
                 if is_binary:
                     outputs = outputs.squeeze(-1)
                     targets = targets
@@ -93,6 +104,9 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                 else:
                     outputs_flat = outputs.view(-1, outputs.size(-1))
                     targets_flat = targets.view(-1)
+
+                print(f"[VAL DEBUG] after squeeze/view → outputs: {outputs.shape}, targets: {targets.shape}")
+                # DEBUG --- VAL
 
                 loss = loss_fn(outputs_flat, targets_flat)
                 val_loss += loss.item()
