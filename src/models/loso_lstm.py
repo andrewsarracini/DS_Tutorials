@@ -96,7 +96,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
 
         # Initialize the model! 
         input_size = len(feature_cols)
-        num_classes = len(np.unique(df_train[label_col])) 
+        num_classes = 1 if is_binary else len(np.unique(df_train[label_col]))
 
         lstm_model = SleepLSTM(
             input_size=input_size, 
