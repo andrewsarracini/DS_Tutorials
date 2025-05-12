@@ -9,6 +9,8 @@ import json
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib 
+matplotlib.use('Agg')
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import log_loss
 import seaborn as sns
@@ -230,9 +232,11 @@ def plot_threshold_curves(y_true, y_probs, model_name='Model', highlight_thresho
 
     if save_path:
         plt.savefig(save_path)
-        print(f'Plot saved to {save_path}')
+        print(f'Plot saved to {save_path}\n')
     
-    plt.show() 
+    # REMOVING THIS FOR NOW
+    # TKINTER YOU DID THIS!
+    # plt.show() 
     
     # =============================
     # Calibration Funcs-- maybe overkill?
@@ -321,3 +325,44 @@ def eval_predictions(y_pred, y_true, label_encoder=None):
     plt.ylabel("Actual")
     plt.title('Confusion Matrix')
     plt.show()
+
+    # to plug into loso_lstm
+    def find_best_thresh(y_true, y_probs, metric='f1', step=0.01): 
+        '''
+        Finds the best threshold that maximizes a specific metric 
+
+        Args: 
+            y_true: Ground truth labels
+            y_probs: Model's predicted probabilities (after loss_fn "sigmoid")
+            metric: One of 'f1', 'precision', 'recall'
+            step: Incremental step for thresholds 
+        
+        Returns: 
+            best_thresh (float): Thresh that delivers highest metric result
+            best_score (float): Corresponding metric score
+        '''
+        metric = metric.lower()
+
+        if metric == 'f1':
+            metric = f1_score
+        elif metric == 'acc':
+            metric = accuracy_score
+        elif metric == 'recall': 
+            metric = recall_score
+        else: 
+            raise ValueError(f'Unsupported metric {metric}')
+
+        best_thresh = 0.5
+        best_score = 0.0
+
+        thresholds = np.arange(0.05, 0.95, step) 
+
+        for t in thresholds:
+            preds = (y_probs > t).astype(int) 
+            score = metric(y_true, preds, zero_division=0)
+
+            if score > best_score:
+                best_score = score
+                best_thresh = t
+        
+        return best_thresh, best_score

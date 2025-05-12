@@ -8,7 +8,7 @@ from sklearn.utils.class_weight import compute_class_weight
 
 from src.models.lstm_model import SleepLSTM
 from src.models.train_lstm import train_lstm
-from src.helper import build_dataloaders, encode_labels, print_eval_summary
+from src.helper import build_dataloaders, encode_labels, find_best_threshold, print_eval_summary
 from src.logger_setup import logger
 from src.paths import PLOT_DIR
 
@@ -18,7 +18,8 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
               batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
               verbose=True, device=None, bidirectional=False,
               dropout=0.0, num_layers=1, loss_fn=None,
-              is_binary=False, threshold=0.5, plot_thresholds=False):
+              is_binary=False, threshold=0.5, plot_thresholds=False, 
+              auto_thresh=False):
     '''
     Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
 
@@ -141,6 +142,11 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         all_preds = np.concatenate(all_preds)
         all_targets = np.concatenate(all_targets)
         all_probs = np.concatenate(all_probs) if is_binary else None
+
+        if is_binary and auto_thresh:
+            best_thresh, best_score = find_best_threshold(all_targets, all_probs, metric='f1')
+            threshold = best_thresh
+            print(f'[AUTO] Best threshold found: {best_thresh:.2f}') 
 
         if is_binary and plot_thresholds and all_probs is not None:
             from src.eval import plot_threshold_curves 
