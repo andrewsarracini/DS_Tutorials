@@ -4,12 +4,13 @@ import pandas as pd
 from pathlib import Path
 
 
-def load_eeg_data(filename='eeg_hypno.csv'):
+def load_eeg_data(filename='eeg_hypno.csv', verbose=False):
     local_path = DATA_DIR / filename 
     remote_url = f'https://raw.githubusercontent.com/andrewsarracini/DS_Tutorials/main/data/{filename}'
 
     if local_path.exists():
-        print(f"[INFO] Loading from local: {local_path}")
+        if verbose:
+            print(f"[INFO] Loading from local: {local_path}")
         return pd.read_csv(local_path)
     
     try:

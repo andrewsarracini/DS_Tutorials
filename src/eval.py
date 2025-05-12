@@ -215,7 +215,7 @@ def plot_threshold_curves(y_true, y_probs, model_name='Model', highlight_thresho
     ax1.scatter(fpr[idx_roc], tpr[idx_roc], color='red', label=f'Thresh = {highlight_threshold}')
     ax1.set_title(f'ROC Curve - {model_name}')
     ax1.set_xlabel('False Positive Rate')
-    ax1.set_ylabel('True Positive Raet') 
+    ax1.set_ylabel('True Positive Rate') 
     ax1.legend()
 
     ax2.plot(recall, precision, label=f'AUC = {pr_auc:.2f}') 

@@ -33,21 +33,6 @@ def main():
     # df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
     df = load_eeg_data('eeg_hypno.csv')
 
-    if args.binary:
-        
-        # Count ratio for pos_weight = (#negative / #positive)
-        class_counts = df['binary_label'].value_counts().to_dict()
-        neg_count = class_counts.get(0,1) 
-        pos_count = class_counts.get(1,1) 
-        imbalance_ratio = neg_count / pos_count
-
-        print(f'[INFO] Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
-
-        pos_weight = torch.tensor([imbalance_ratio]).to(device)
-        loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    else: 
-        loss_fn = nn.CrossEntropyLoss()
-
     target_col = 'binary_label' if args.binary else 'label'
     non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}
     feature_cols = [col for col in df.columns if col not in non_feat_cols]
@@ -67,7 +52,7 @@ def main():
         bidirectional=args.bidirectional,
         n_epochs=args.epochs,
         lr=args.lr, 
-        loss_fn=loss_fn,
+        loss_fn=None,
         is_binary=args.binary,
         threshold=args.threshold
     )

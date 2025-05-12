@@ -81,10 +81,24 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
             dropout=model_params.get('dropout', 0.0), 
             bidirectional=bidirectional
         ) 
-        
-        optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr) 
-        if loss_fn is None: 
-            loss_fn = nn.CrossEntropyLoss(weight=class_weights) 
+
+        optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr)
+
+        # Set loss_fn if not provided
+        if loss_fn is None:
+            if is_binary:
+                class_counts = df_train[label_col].value_counts().to_dict()
+                neg_count = class_counts.get(0, 1)
+                pos_count = class_counts.get(1, 1)
+                imbalance_ratio = neg_count / pos_count
+
+                if verbose:
+                    print(f'[INFO] Subject {subject}: Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
+
+                pos_weight = torch.tensor([imbalance_ratio]).to(device)
+                loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+            else:
+                loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 
         # Now train the model using `train_lstm` 
         lstm_model = train_lstm(
@@ -101,7 +115,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
 
         # Final Eval on the test set
         lstm_model.eval()
-        all_preds, all_targets = [], []
+        all_preds, all_targets, all_probs = [], [], []
 
         with torch.no_grad():
             for batch in dataloaders['val']:
@@ -109,7 +123,15 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
                 x, y = x.to(device), y.to(device) 
 
                 logits = lstm_model(x)
-                preds = torch.argmax(logits, dim=-1) 
+                
+                if is_binary:
+                    probs = torch.sigmoid(logits) 
+                    preds = (probs > threshold).long().squeeze(-1)
+                    preds = preds.view_as(y) # Ensuring same shape output!
+
+                    all_probs.append(probs.cpu().numpy().reshape(-1)) 
+                else: 
+                    preds = torch.argmax(logits, dim=-1) 
 
                 all_preds.append(preds.cpu().numpy().reshape(-1))
                 all_targets.append(y.cpu().numpy().reshape(-1))
@@ -117,6 +139,7 @@ def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
         # Flatten to match sklearn expectations!
         all_preds = np.concatenate(all_preds)
         all_targets = np.concatenate(all_targets)
+        all_probs = np.concatenate(all_probs) if is_binary else None
 
         report = classification_report(
             all_targets,
