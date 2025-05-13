@@ -365,4 +365,4 @@ def find_best_thresh(y_true, y_probs, metric='f1', step=0.01):
             best_score = score
             best_thresh = t
     
-    return best_thresh, best_score
+    return round(best_thresh, 4), best_score

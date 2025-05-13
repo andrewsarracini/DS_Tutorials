@@ -13,188 +13,154 @@ from src.logger_setup import logger
 from src.paths import PLOT_DIR
 
 
-def loso_lstm(df:pd.DataFrame, feature_cols, label_col='label',
-              model_params=None, window_size=10, stride=None, 
-              batch_size=32, lr=1e-3, n_epochs=10, target_subject=None, 
+def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
+              model_params=None, window_size=10, stride=None,
+              batch_size=32, lr=1e-3, n_epochs=10, target_subject=None,
               verbose=True, device=None, bidirectional=False,
               dropout=0.0, num_layers=1, loss_fn=None,
-              is_binary=False, threshold=0.5, plot_thresholds=False, 
+              is_binary=False, threshold=0.5, plot_thresholds=False,
               auto_thresh=False):
-    '''
-    Performs Leave-One-Subject-Out (LOSO) training and eval using LSTM
-
-    Args: 
-        df: full df with 'subject_id' features and label_col 
-        feature_cols (list): List of cols to use as input feats
-        label_col (str): Name of label col
-        model_params (dict): Params passed into SleepLSTM 
-        window_size (int): Number of timesteps in each seq 
-        batch_size (int): Batch size for training
-        lr (float): Learning rate
-        n_epochs (int): Number of training epochs 
-        target_subject (int): If provided, runs only that subject
-        verbose (bool): Whether to print progress 
-        device (str): 'cuda' or 'cpu' 
-
-    Returns: 
-        results (dict): Maps subject_id ot performance metrics
-    '''
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-
-    results = {} 
-
+    results = {}
     subjects = [target_subject] if target_subject is not None else df['subject_id'].unique()
 
-    for subject in subjects: 
-        if verbose: 
+    for subject in subjects:
+        if verbose:
             print(f'\n🚪 Leaving out Subject {subject} for LSTM training...\n')
 
-        df_train = df[df['subject_id'] != subject].reset_index(drop=True) 
-        df_test = df[df['subject_id'] == subject].reset_index(drop=True) 
+        df_train = df[df['subject_id'] != subject].reset_index(drop=True)
+        df_test = df[df['subject_id'] == subject].reset_index(drop=True)
+        df_train, df_test, le, encoder_path = encode_labels(df_train, df_test, label_col, subject)
 
-        df_train, df_test, le, encoder_path = encode_labels(df_train, df_test,
-                                              label_col, subject)
-
-        # Class Weights 
+        # Class weights (multiclass only)
         class_weights = None
-        if df_train[label_col].nunique() > 2: # if multiclass: 
+        if df_train[label_col].nunique() > 2:
             classes = np.unique(df_train[label_col])
-            class_weights = compute_class_weight(class_weight='balanced',
-                                                 classes=classes,
-                                                 y=df_train[label_col])
+            class_weights = compute_class_weight(class_weight='balanced', classes=classes, y=df_train[label_col])
             class_weights = torch.tensor(class_weights, dtype=torch.float32).to(device)
             if verbose:
                 print(f'[DEBUG] Class Weights (multi): {class_weights}')
 
-        # Dataset + DataLoaders
-        dataloaders = build_dataloaders(df_train, df_test, feature_cols, 
-                                        label_col, window_size, stride, 
-                                        batch_size)
+        dataloaders = build_dataloaders(df_train, df_test, feature_cols, label_col, window_size, stride, batch_size)
 
-        # Initialize the model! 
         input_size = len(feature_cols)
         num_classes = 1 if is_binary else len(np.unique(df_train[label_col]))
 
         lstm_model = SleepLSTM(
-            input_size=input_size, 
-            hidden_size=model_params.get('hidden_size', 64), 
+            input_size=input_size,
+            hidden_size=model_params.get('hidden_size', 64),
             num_layers=model_params.get('num_layers', 1),
-            num_classes=num_classes, 
-            dropout=model_params.get('dropout', 0.0), 
+            num_classes=num_classes,
+            dropout=model_params.get('dropout', 0.0),
             bidirectional=bidirectional
-        ) 
+        )
 
         optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr)
 
-        # Set loss_fn if not provided
+        # Binary or multiclass loss
         if loss_fn is None:
             if is_binary:
                 class_counts = df_train[label_col].value_counts().to_dict()
                 neg_count = class_counts.get(0, 1)
                 pos_count = class_counts.get(1, 1)
                 imbalance_ratio = neg_count / pos_count
-
                 if verbose:
                     print(f'[INFO] Subject {subject}: Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
-
                 pos_weight = torch.tensor([imbalance_ratio]).to(device)
                 loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
             else:
                 loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 
-        # Now train the model using `train_lstm` 
+        # Train
         lstm_model = train_lstm(
-            model=lstm_model, 
+            model=lstm_model,
             dataloaders=dataloaders,
             optimizer=optimizer,
             loss_fn=loss_fn,
-            device=device, 
+            device=device,
             n_epochs=n_epochs,
-            verbose=verbose, 
-            is_binary=True, 
-            threshold=0.45
+            verbose=verbose,
+            is_binary=is_binary,
+            threshold=threshold  # still used for validation logging
         )
 
-        # Final Eval on the test set
+        # Eval loop
         lstm_model.eval()
-        all_preds, all_targets, all_probs = [], [], []
+        all_targets, all_probs = [], []
 
         with torch.no_grad():
             for batch in dataloaders['val']:
                 x, y = batch
-                x, y = x.to(device), y.to(device) 
+                x, y = x.to(device), y.to(device)
 
                 logits = lstm_model(x)
-                
+
                 if is_binary:
-                    probs = torch.sigmoid(logits) 
-                    preds = (probs > threshold).long().squeeze(-1)
-                    preds = preds.view_as(y) # Ensuring same shape output!
+                    probs = torch.sigmoid(logits).squeeze(-1)
+                    all_probs.append(probs.cpu().numpy().reshape(-1))
+                else:
+                    preds = torch.argmax(logits, dim=-1)
+                    all_targets.append(y.cpu().numpy().reshape(-1))
 
-                    all_probs.append(probs.cpu().numpy().reshape(-1)) 
-                else: 
-                    preds = torch.argmax(logits, dim=-1) 
-
-                all_preds.append(preds.cpu().numpy().reshape(-1))
-                all_targets.append(y.cpu().numpy().reshape(-1))
-
-        # Flatten to match sklearn expectations!
-        all_preds = np.concatenate(all_preds)
-        all_targets = np.concatenate(all_targets)
+        all_targets = np.concatenate([y.cpu().numpy().reshape(-1) for _, y in dataloaders['val']])
         all_probs = np.concatenate(all_probs) if is_binary else None
 
+        # Auto threshold logic
         if is_binary and auto_thresh:
-            
             from src.eval import find_best_thresh
-
             best_thresh, best_score = find_best_thresh(all_targets, all_probs, metric='f1')
             threshold = best_thresh
-            print(f'[AUTO] Best threshold found: {best_thresh:.2f}') 
-        
-            all_preds = (all_preds > threshold).astype(int)
+            print(f'[AUTO] Best threshold found: {threshold:.2f} | Best score: {best_score:.4f}')
+            print(f'[DEBUG] Probs range: min={all_probs.min():.4f}, max={all_probs.max():.4f}, mean={all_probs.mean():.4f}')
+            print(f'[DEBUG] Targets: {np.bincount(all_targets)} (label 0 = NREM, label 1 = REM)')
 
+
+        # Now apply final threshold to get predictions
+        if is_binary:
+            all_preds = (all_probs > threshold).astype(int)
+        else:
+            all_preds = np.concatenate([torch.argmax(lstm_model(x.to(device)), dim=-1).cpu().numpy().reshape(-1)
+                                        for x, _ in dataloaders['val']])
+
+        # Plot threshold curves if requested
         if is_binary and plot_thresholds and all_probs is not None:
-            from src.eval import plot_threshold_curves 
-
+            from src.eval import plot_threshold_curves
             plot_path = PLOT_DIR / f'thresh_s{subject}.png'
-
             plot_threshold_curves(
-                y_true=all_targets, 
-                y_probs=all_probs, 
+                y_true=all_targets,
+                y_probs=all_probs,
                 model_name=f'LSTM_s{subject}',
                 highlight_threshold=threshold,
                 save_path=plot_path
             )
 
+        # Reporting
         report = classification_report(
-            all_targets,
-            all_preds,
+            all_targets, all_preds,
             target_names=le.classes_,
-            zero_division=0, 
-            digits=4, 
+            zero_division=0,
+            digits=4,
             output_dict=True
         )
 
         acc = report['accuracy']
         f1 = report['weighted avg']['f1-score']
 
-        if verbose: 
-            logger.info('\n--- Per-Class F1 Scores ---') 
+        if verbose:
+            logger.info('\n--- Per-Class F1 Scores ---')
             for label in le.classes_:
                 stats = report[label]
                 logger.info(f"{label:<5} | F1: {stats['f1-score']:.4f} | Precision: {stats['precision']:.4f} | Recall: {stats['recall']:.4f} | Support: {int(stats['support'])}")
-
             print_eval_summary(all_preds, all_targets, encoder_path)
 
         results[subject] = {
-            'subject_id': subject, 
-            'accuracy': acc, 
-            'weighted_f1': f1, 
-            'all_preds': all_preds, 
+            'subject_id': subject,
+            'accuracy': acc,
+            'weighted_f1': f1,
+            'all_preds': all_preds,
             'all_targets': all_targets,
             'encoder_path': str(encoder_path),
             'report': report
         }
 
-    return results 
-              
+    return results
