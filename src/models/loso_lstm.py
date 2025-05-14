@@ -71,6 +71,8 @@ def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
             else:
                 loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 
+        # Tentative spot for Optuna 
+
         # Train
         lstm_model = train_lstm(
             model=lstm_model,
