@@ -3,6 +3,7 @@ from imblearn.over_sampling import SMOTE
 from matplotlib.pyplot import step
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedKFold, train_test_split
+from torch import lstm
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -252,7 +253,7 @@ class TqdmProgressBar:
 
 # --------------------------------------------------------
 
-def get_lstm_search_space(trial):
+def lstm_search_space(trial):
     return {
         "hidden_size": trial.suggest_categorical("hidden_size", [64, 128, 256]),
         "num_layers": trial.suggest_int("num_layers", 1, 3),
@@ -265,3 +266,40 @@ def get_lstm_search_space(trial):
         "batch_size": trial.suggest_categorical("batch_size", [32, 64, 128]),
         "weight_decay": trial.suggest_loguniform("weight_decay", 1e-5, 1e-2),
     }
+
+from src.models.loso_lstm import loso_lstm
+from src.eval import find_best_thresh, eval_predictions
+
+def lstm_objective(trial): 
+    # sample hyperparams 
+    config = lstm_search_space(trial)
+
+    # Call existing loso_lstm training pipeline    
+    result = loso_lstm(config) 
+    val_targets = result['val_targets']
+    val_probs = result['val_probs']
+
+    # Auto-detect if binary or multiclass
+    unique_labels = set(val_targets)
+    is_binary = unique_labels == {0, 1} or len(unique_labels) == 2
+
+    if is_binary:
+        # Find best thresh for binary
+        best_thresh, best_f1 = find_best_thresh(val_targets, val_probs)
+        trial.set_user_attr("best_thresh", best_thresh)
+        return best_f1
+    # else:
+        # Multiclass case
+        # Assume val_probs is shape [n_samples, n_classes]
+
+    return result['f1_weighted']
+
+def optuna_lstm_tuner(n_trials=30, random_state=10): 
+    progress_bar = TqdmProgressBar(n_trials)
+    optuna.logging.set_verbosity(optuna.logging.WARNING)  # Suppress Optuna logs
+
+    study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=random_state))
+    study.optimize(lstm_objective, n_trials=n_trials, callbacks=[progress_bar])
+    progress_bar.close() 
+
+    return study.best_params, study
