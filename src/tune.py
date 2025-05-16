@@ -249,3 +249,19 @@ class TqdmProgressBar:
 
     def close(self):
         self.pbar.close()
+
+# --------------------------------------------------------
+
+def get_lstm_search_space(trial):
+    return {
+        "hidden_size": trial.suggest_categorical("hidden_size", [64, 128, 256]),
+        "num_layers": trial.suggest_int("num_layers", 1, 3),
+        "dropout": trial.suggest_float("dropout", 0.1, 0.5),
+        "bidirectional": trial.suggest_categorical("bidirectional", [True, False]),
+        "learning_rate": trial.suggest_loguniform("learning_rate", 1e-4, 1e-2),
+        "stride": trial.suggest_categorical("stride", [1, 2, 4]),
+        "seq_len": trial.suggest_categorical("seq_len", [32, 64, 128]),
+        "epochs": trial.suggest_int("epochs", 5, 15),
+        "batch_size": trial.suggest_categorical("batch_size", [32, 64, 128]),
+        "weight_decay": trial.suggest_loguniform("weight_decay", 1e-5, 1e-2),
+    }
