@@ -284,7 +284,7 @@ def lstm_objective(trial):
     is_binary = unique_labels == {0, 1} or len(unique_labels) == 2
 
     if is_binary:
-        # Find best thresh for binary
+        # Binary case
         best_thresh, best_f1 = find_best_thresh(val_targets, val_probs)
         trial.set_user_attr("best_thresh", best_thresh)
         return best_f1

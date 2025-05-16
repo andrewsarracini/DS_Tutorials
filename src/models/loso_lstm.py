@@ -12,16 +12,44 @@ from src.helper import build_dataloaders, encode_labels, find_best_threshold, pr
 from src.logger_setup import logger
 from src.paths import PLOT_DIR
 
+# -----------------------------------------------------------------------
+# OLD loso_lstm() implementation
 
-def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
-              model_params=None, window_size=10, stride=None,
-              batch_size=32, lr=1e-3, n_epochs=10, target_subject=None,
-              verbose=True, device=None, bidirectional=False,
-              dropout=0.0, num_layers=1, loss_fn=None,
-              is_binary=False, threshold=0.5, plot_thresholds=False,
-              auto_thresh=False):
+# def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
+#               model_params=None, window_size=10, stride=None,
+#               batch_size=32, lr=1e-3, n_epochs=10, target_subject=None,
+#               verbose=True, device=None, bidirectional=False,
+#               dropout=0.0, num_layers=1, loss_fn=None,
+#               is_binary=False, threshold=0.5, plot_thresholds=False,
+#               auto_thresh=False):
+# ------------------------------------------------------------------------
+
+def loso_lstm(config):
+    # === Unpack config ===
+    df = config["df"]
+    feature_cols = config["feature_cols"]
+    label_col = config.get("label_col", "label")
+    target_subject = config.get("target_subject")
+    verbose = config.get("verbose", True)
+
+    hidden_size = config["hidden_size"]
+    num_layers = config["num_layers"]
+    dropout = config["dropout"]
+    bidirectional = config["bidirectional"]
+    lr = config["learning_rate"]
+    stride = config["stride"]
+    window_size = config["seq_len"]
+    n_epochs = config["epochs"]
+    batch_size = config["batch_size"]
+    weight_decay = config.get("weight_decay", 0.0)
+    is_binary = config.get("is_binary", False)
+    threshold = config.get("threshold", 0.5)
+    plot_thresholds = config.get("plot_thresholds", False)
+    auto_thresh = config.get("auto_thresh", False)
+    
+
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-    results = {}
+    # results = {}
     subjects = [target_subject] if target_subject is not None else df['subject_id'].unique()
 
     for subject in subjects:
@@ -48,32 +76,38 @@ def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
 
         lstm_model = SleepLSTM(
             input_size=input_size,
-            hidden_size=model_params.get('hidden_size', 64),
-            num_layers=model_params.get('num_layers', 1),
-            num_classes=num_classes,
-            dropout=model_params.get('dropout', 0.0),
+            hidden_size=hidden_size, 
+            num_layers=num_layers,
+            num_classes=num_classes, 
+            dropout=dropout,
             bidirectional=bidirectional
         )
 
-        optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr)
+        # lstm_model = SleepLSTM(
+        #     input_size=input_size,
+        #     hidden_size=model_params.get('hidden_size', 64),
+        #     num_layers=model_params.get('num_layers', 1),
+        #     num_classes=num_classes,
+        #     dropout=model_params.get('dropout', 0.0),
+        #     bidirectional=bidirectional
+        # )
 
-        # Binary or multiclass loss
-        if loss_fn is None:
-            if is_binary:
-                class_counts = df_train[label_col].value_counts().to_dict()
-                neg_count = class_counts.get(0, 1)
-                pos_count = class_counts.get(1, 1)
-                imbalance_ratio = neg_count / pos_count
-                if verbose:
-                    print(f'[INFO] Subject {subject}: Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
-                pos_weight = torch.tensor([imbalance_ratio]).to(device)
-                loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-            else:
-                loss_fn = nn.CrossEntropyLoss(weight=class_weights)
+        optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr, weight_decay=weight_decay)
 
-        # drop optuna_tuner here;
+        # Binary or Multiclass loss
+        if is_binary:
+            class_counts = df_train[label_col].value_counts().to_dict()
+            neg_count = class_counts.get(0, 1)
+            pos_count = class_counts.get(1, 1)
+            imbalance_ratio = neg_count / pos_count
+            if verbose:
+                print(f'[INFO] Subject {subject}: Class Imbalance Ratio: {imbalance_ratio:.2f} (neg:pos)')
+            pos_weight = torch.tensor([imbalance_ratio]).to(device)
+            loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+        else:
+            loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 
-        # Train
+        # === Train === 
         lstm_model = train_lstm(
             model=lstm_model,
             dataloaders=dataloaders,
@@ -83,10 +117,10 @@ def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
             n_epochs=n_epochs,
             verbose=verbose,
             is_binary=is_binary,
-            threshold=threshold  # still used for validation logging
+            threshold=threshold  
         )
 
-        # Eval loop
+        # === Eval === 
         lstm_model.eval()
         all_targets, all_probs = [], []
 
@@ -94,7 +128,6 @@ def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
             for batch in dataloaders['val']:
                 x, y = batch
                 x, y = x.to(device), y.to(device)
-
                 logits = lstm_model(x)
 
                 if is_binary:
@@ -116,15 +149,15 @@ def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
             threshold = best_thresh
             print(f'[AUTO] Best threshold found: {threshold:.2f} | Best score: {best_score:.4f}')
             print(f'[DEBUG] Probs range: min={all_probs.min():.4f}, max={all_probs.max():.4f}, mean={all_probs.mean():.4f}')
-            print(f'[DEBUG] Targets: {np.bincount(all_targets)} (label 0 = NREM, label 1 = REM)')
 
-
-        # Now apply final threshold to get predictions
+        # Now apply threshold to get Final Preds
         if is_binary:
             all_preds = (all_probs > threshold).astype(int)
         else:
-            all_preds = np.concatenate([torch.argmax(lstm_model(x.to(device)), dim=-1).cpu().numpy().reshape(-1)
-                                        for x, _ in dataloaders['val']])
+            all_preds = np.concatenate([
+                torch.argmax(lstm_model(x.to(device)), dim=-1).cpu().numpy().reshape(-1)
+                for x, _ in dataloaders['val']
+            ])
 
         # Plot threshold curves if requested
         if is_binary and plot_thresholds and all_probs is not None:
@@ -157,14 +190,12 @@ def loso_lstm(df: pd.DataFrame, feature_cols, label_col='label',
                 logger.info(f"{label:<5} | F1: {stats['f1-score']:.4f} | Precision: {stats['precision']:.4f} | Recall: {stats['recall']:.4f} | Support: {int(stats['support'])}")
             print_eval_summary(all_preds, all_targets, encoder_path)
 
-        results[subject] = {
-            'subject_id': subject,
-            'accuracy': acc,
-            'weighted_f1': f1,
-            'all_preds': all_preds,
-            'all_targets': all_targets,
-            'encoder_path': str(encoder_path),
-            'report': report
-        }
-
-    return results
+    return {
+        'val_targets': all_targets, 
+        'val_probs': all_probs if is_binary else None,
+        'val_preds': all_preds, 
+        'f1_weighted': f1, 
+        'accuracy': acc,
+        'subject_id': subject,
+        'threshold': threshold
+    }
