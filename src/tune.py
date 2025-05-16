@@ -268,7 +268,7 @@ def lstm_search_space(trial):
     }
 
 from src.models.loso_lstm import loso_lstm
-from src.eval import find_best_thresh, eval_predictions
+from src.eval import eval_probs, find_best_thresh
 
 def lstm_objective(trial): 
     # sample hyperparams 
@@ -288,11 +288,11 @@ def lstm_objective(trial):
         best_thresh, best_f1 = find_best_thresh(val_targets, val_probs)
         trial.set_user_attr("best_thresh", best_thresh)
         return best_f1
-    # else:
+    else:
         # Multiclass case
         # Assume val_probs is shape [n_samples, n_classes]
-
-    return result['f1_weighted']
+        metrics = eval_probs(val_targets, val_probs)
+        return metrics['f1_weighted']
 
 def optuna_lstm_tuner(n_trials=30, random_state=10): 
     progress_bar = TqdmProgressBar(n_trials)

@@ -367,3 +367,25 @@ def find_best_thresh(y_true, y_probs, metric='f1', step=0.01):
     
     return round(best_thresh, 4), best_score
 
+def eval_probs(y_true, y_probs):
+    '''
+    Eval performance of multiclass model using prob outputs
+
+    Args: 
+        y_true (array-like): True class labels (shape: [N])
+        y_probs (np.ndarray): Predicted probs (shape: [N, C])
+    
+    Return:
+        dict: Eval metrics
+    '''
+    y_pred = np.argmax(y_probs, axis=1)
+
+    return {
+        "f1_weighted": f1_score(y_true, y_pred, average="weighted"),
+        "f1_macro": f1_score(y_true, y_pred, average="macro"),
+        "accuracy": accuracy_score(y_true, y_pred),
+        "precision_weighted": precision_score(y_true, y_pred, average="weighted", zero_division=0),
+        "recall_weighted": recall_score(y_true, y_pred, average="weighted", zero_division=0),
+        "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),  # Optional: for logging/plotting
+        "report": classification_report(y_true, y_pred, output_dict=True),  # Optional: full report
+    }
