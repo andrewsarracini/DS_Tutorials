@@ -1,3 +1,5 @@
+import csv
+import datetime
 from imblearn.pipeline import Pipeline as imbpipeline
 from imblearn.over_sampling import SMOTE
 from matplotlib.pyplot import step
@@ -7,6 +9,12 @@ from torch import lstm, threshold
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+import numpy as np
+import pandas as pd 
+from datetime import datetime
+from pathlib import Path
+
+from src.tune import lstm_search_space
 
 import warnings
 import time
@@ -16,6 +24,8 @@ from src.logger_setup import logger
 from src.helper import stratified_sample, dynamic_param_grid, param_spaces
 
 import json
+
+from src.paths import LOG_DIR
 
 def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20, verbose=True):
     '''
@@ -272,7 +282,8 @@ from src.eval import eval_probs, find_best_thresh
 import numpy as np
 
 def optuna_lstm_tuner(n_trials=30, random_state=10,
-                      static_config=None, subject_list=None): 
+                      static_config=None, subject_list=None,
+                      export_csv=True, export_path=None): 
     
     def lstm_full_loso_objective(trial): 
         trial_config = lstm_search_space(trial)
@@ -313,4 +324,38 @@ def optuna_lstm_tuner(n_trials=30, random_state=10,
     study.optimize(lstm_full_loso_objective, n_trials=n_trials, callbacks=[progress_bar])
     progress_bar.close() 
 
+    if export_csv: 
+        export_subject_scores(study, path=export_path) 
+
     return study.best_params, study
+
+
+def export_subject_scores(study, path=None):
+    rows = []
+    for trial in study.trials:
+        trial_id = trial.number
+        avg_f1 = trial.user_attrs.get('avg_f1') 
+        params = trial.user_attrs.get('params', {})
+        subject_scores = trial.user_attrs.get('subject_scores', {})
+
+        for subject_id, metrics in subject_scores.items(): 
+            rows.append({
+                'trial': trial_id, 
+                'subject': subject_id, 
+                'f1': metrics['f1'], 
+                'thresh': metrics['thresh'],
+                'acc': metrics['acc'], 
+                'avg_f1': avg_f1,
+                **params
+            })
+
+        df = pd.DataFrame(rows)
+
+        if path is None:
+            timestamp = datetime.now().strftime("%m-%d")
+            path = LOG_DIR / f'optuna_lstm_{timestamp}.csv' 
+
+        Path(path).parent.mkdir(parents=True, exist_ok=True) 
+        df.to_csv(path, index=False) 
+        print(f"✅ Exported subject scores to {path}")
+        
