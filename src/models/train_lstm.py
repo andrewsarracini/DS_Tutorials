@@ -29,7 +29,7 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
     # moves model to GPU or CPU 
     # required *before* training starts!
     model.to(device)
-    print("✅ Device:", torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU\n")
+    # print("✅ Device:", torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU\n")
 
     # puts model in training mode 
     # count up the epoch's total training loss

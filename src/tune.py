@@ -3,7 +3,7 @@ from imblearn.over_sampling import SMOTE
 from matplotlib.pyplot import step
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedKFold, train_test_split
-from torch import lstm
+from torch import lstm, threshold
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -277,6 +277,7 @@ def optuna_lstm_tuner(n_trials=30, random_state=10,
     def lstm_full_loso_objective(trial): 
         trial_config = lstm_search_space(trial)
         f1_scores = []
+        subject_results = {}
 
         for subject in subject_list:
             config = {
@@ -286,12 +287,19 @@ def optuna_lstm_tuner(n_trials=30, random_state=10,
             }
 
             result = loso_lstm(config)
+            f1 = result['f1_weighted']
             f1_scores.append(result['f1_weighted']) 
 
+            subject_results[str(subject)] = {
+                'f1': f1, 
+                'thresh': result.get('threshold'), 
+                'acc': result.get('accuracy') 
+            }
+
         avg_f1 = np.mean(f1_scores) 
-        trial.set_user_attr('subject_scores', dict(zip(subject_list, f1_scores)))
-        trial.set_user_attr("params", trial_config)
-        trial.set_user_attr("avg_f1", avg_f1)
+        trial.set_user_attr('avg_f1', avg_f1) 
+        trial.set_user_attr('subject_scores', subject_results) 
+        trial.set_user_attr('params', trial_config)
 
         return avg_f1
                     

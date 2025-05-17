@@ -55,6 +55,8 @@ def loso_lstm(config):
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+    print(f"[INFO] Using device: {device}")
+
     subjects = [target_subject] if target_subject is not None else df['subject_id'].unique()
 
     for subject in subjects:
@@ -87,16 +89,7 @@ def loso_lstm(config):
             dropout=dropout,
             bidirectional=bidirectional
         )
-
-        # lstm_model = SleepLSTM(
-        #     input_size=input_size,
-        #     hidden_size=model_params.get('hidden_size', 64),
-        #     num_layers=model_params.get('num_layers', 1),
-        #     num_classes=num_classes,
-        #     dropout=model_params.get('dropout', 0.0),
-        #     bidirectional=bidirectional
-        # )
-
+        
         optimizer = torch.optim.Adam(lstm_model.parameters(),
                                       lr=lr, 
                                       weight_decay=weight_decay)
@@ -154,8 +147,8 @@ def loso_lstm(config):
 
             best_thresh, best_score = find_best_thresh(all_targets, all_probs, metric='f1')
             threshold = best_thresh
-            print(f'[AUTO] Best threshold found: {threshold:.2f} | Best score: {best_score:.4f}')
-            print(f'[DEBUG] Probs range: min={all_probs.min():.4f}, max={all_probs.max():.4f}, mean={all_probs.mean():.4f}')
+            print(f'[AUTO] Best threshold found: {threshold:.2f} | Best F1: {best_score:.4f}')
+            # print(f'[DEBUG] Probs range: min={all_probs.min():.4f}, max={all_probs.max():.4f}, mean={all_probs.mean():.4f}')
 
         # Now apply threshold to get Final Preds
         if is_binary:
@@ -168,7 +161,9 @@ def loso_lstm(config):
 
         # Plot threshold curves if requested
         if is_binary and plot_thresholds and all_probs is not None:
+
             from src.eval import plot_threshold_curves
+
             plot_path = PLOT_DIR / f'thresh_s{subject}.png'
             plot_threshold_curves(
                 y_true=all_targets,

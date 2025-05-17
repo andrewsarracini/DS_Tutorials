@@ -29,7 +29,6 @@ def main():
         'auto_thresh': True, 
         'plot_thresholds': False
     }
-
     
     print(f"\n🚀 Tuning LSTM | Trials: {args.trials} | Subjects: {subjects_to_tune}\n")
 
@@ -40,9 +39,9 @@ def main():
         subject_list = subjects_to_tune
     )
 
-    print("\n✅ Best parameters found:")
-    for k, v in best_params.items():
-        print(f"  {k}: {v}") 
+    print('\n✅ Best params found:')
+    for k, v in best_params.items(): 
+        print(f'  {k}: {v}')
 
 if __name__ == '__main__':
     main()
