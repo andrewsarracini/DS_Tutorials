@@ -7,6 +7,7 @@ from src.tune import optuna_lstm_tuner
 def main(): 
     parser = argparse.ArgumentParser(description='Run Optuna tuning across subjects') 
     parser.add_argument('--trials', type=int, default=10, help='Number of Optuna trials')
+    parser.add_argument('--dataset', type=str, default='eeg_hypno.csv')
     parser.add_argument('--binary', action='store_true', help='Use binary REM/NREM labels')
     parser.add_argument('--subject', type=int, nargs='*', default=None, help='Subject(s) to tune on. Default: all subjects')
     args = parser.parse_args()
