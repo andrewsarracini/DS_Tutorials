@@ -50,7 +50,10 @@ def loso_lstm(config):
     auto_thresh = config.get("auto_thresh", False)
     
 
-    device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
+    device = config.get('device', None)
+    if device is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     subjects = [target_subject] if target_subject is not None else df['subject_id'].unique()
 
