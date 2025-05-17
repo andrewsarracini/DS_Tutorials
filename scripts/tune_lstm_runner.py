@@ -34,7 +34,7 @@ def main():
 
     print(f"\n🚀 Tuning LSTM | Trials: {args.trials} | Subjects: {subjects_to_tune}\n")
 
-    best_params = study = optuna_lstm_tuner(
+    best_params, study = optuna_lstm_tuner(
         n_trials=args.trials, 
         random_state=10, 
         static_config=static_config, 
