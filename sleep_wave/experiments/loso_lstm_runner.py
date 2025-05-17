@@ -59,7 +59,8 @@ def main():
         is_binary=args.binary,
         threshold=args.threshold,
         plot_thresholds=args.plot_thresholds,
-        auto_thresh=args.auto_thresh
+        auto_thresh=args.auto_thresh, 
+        device=device
     )
 
 if __name__ == '__main__':

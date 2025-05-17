@@ -26,6 +26,8 @@ from src.paths import PLOT_DIR
 
 def loso_lstm(config):
     # === Unpack config ===
+    # Config is passed in through src/tune
+
     df = config["df"]
     feature_cols = config["feature_cols"]
     label_col = config.get("label_col", "label")
@@ -49,7 +51,7 @@ def loso_lstm(config):
     
 
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
-    # results = {}
+
     subjects = [target_subject] if target_subject is not None else df['subject_id'].unique()
 
     for subject in subjects:
@@ -92,7 +94,9 @@ def loso_lstm(config):
         #     bidirectional=bidirectional
         # )
 
-        optimizer = torch.optim.Adam(lstm_model.parameters(), lr=lr, weight_decay=weight_decay)
+        optimizer = torch.optim.Adam(lstm_model.parameters(),
+                                      lr=lr, 
+                                      weight_decay=weight_decay)
 
         # Binary or Multiclass loss
         if is_binary:

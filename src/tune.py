@@ -269,37 +269,40 @@ def lstm_search_space(trial):
 
 from src.models.loso_lstm import loso_lstm
 from src.eval import eval_probs, find_best_thresh
+import numpy as np
 
-def lstm_objective(trial): 
-    # sample hyperparams 
-    config = lstm_search_space(trial)
+def optuna_lstm_tuner(n_trials=30, random_state=10,
+                      static_config=None, subject_list=None): 
+    
+    def lstm_full_loso_objective(trial): 
+        trial_config = lstm_search_space(trial)
+        f1_scores = []
 
-    # Call existing loso_lstm training pipeline    
-    result = loso_lstm(config) 
-    val_targets = result['val_targets']
-    val_probs = result['val_probs']
+        for subject in subject_list:
+            config = {
+                **static_config, 
+                **trial_config, 
+                'target_subject': subject
+            }
 
-    # Auto-detect if binary or multiclass
-    unique_labels = set(val_targets)
-    is_binary = unique_labels == {0, 1} or len(unique_labels) == 2
+            result = loso_lstm(config)
+            f1_scores.append(result['f1_weighted']) 
 
-    if is_binary:
-        # Binary case
-        best_thresh, best_f1 = find_best_thresh(val_targets, val_probs)
-        trial.set_user_attr("best_thresh", best_thresh)
-        return best_f1
-    else:
-        # Multiclass case
-        # Assume val_probs is shape [n_samples, n_classes]
-        metrics = eval_probs(val_targets, val_probs)
-        return metrics['f1_weighted']
+        avg_f1 = np.mean(f1_scores) 
+        trial.set_user_attr('subject_scores', dict(zip(subject_list, f1_scores)))
+        trial.set_user_attr("params", trial_config)
+        trial.set_user_attr("avg_f1", avg_f1)
 
-def optuna_lstm_tuner(n_trials=30, random_state=10): 
+        return avg_f1
+                    
     progress_bar = TqdmProgressBar(n_trials)
     optuna.logging.set_verbosity(optuna.logging.WARNING)  # Suppress Optuna logs
 
-    study = optuna.create_study(direction='maximize', sampler=optuna.samplers.TPESampler(seed=random_state))
-    study.optimize(lstm_objective, n_trials=n_trials, callbacks=[progress_bar])
+    study = optuna.create_study(
+        direction='maximize', 
+        sampler=optuna.samplers.TPESampler(seed=random_state)
+    )
+    study.optimize(lstm_full_loso_objective, n_trials=n_trials, callbacks=[progress_bar])
     progress_bar.close() 
 
     return study.best_params, study
