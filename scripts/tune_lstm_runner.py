@@ -10,6 +10,8 @@ def main():
     parser.add_argument('--dataset', type=str, default='eeg_hypno.csv')
     parser.add_argument('--binary', action='store_true', help='Use binary REM/NREM labels')
     parser.add_argument('--subject', type=int, nargs='*', default=None, help='Subject(s) to tune on. Default: all subjects')
+    parser.add_argument("--export-csv", action="store_true", help="Export subject scores to CSV")
+
     args = parser.parse_args()
 
     df = pd.read_csv(DATA_DIR / args.dataset) 
@@ -29,14 +31,15 @@ def main():
         'auto_thresh': True, 
         'plot_thresholds': False
     }
-    
+
     print(f"\n🚀 Tuning LSTM | Trials: {args.trials} | Subjects: {subjects_to_tune}\n")
 
     best_params = study = optuna_lstm_tuner(
         n_trials=args.trials, 
         random_state=10, 
         static_config=static_config, 
-        subject_list = subjects_to_tune
+        subject_list = subjects_to_tune, 
+        export_csv=args.export_csv
     )
 
     print('\n✅ Best params found:')
