@@ -147,7 +147,7 @@ def loso_lstm(config):
 
             best_thresh, best_score = find_best_thresh(all_targets, all_probs, metric='f1')
             threshold = best_thresh
-            print(f'[AUTO] Best threshold found: {threshold:.2f} | Best F1: {best_score:.4f}')
+            print(f'[AUTO] Best threshold found: {threshold:.2f} | Best F1: {best_score:.4f}\n')
             # print(f'[DEBUG] Probs range: min={all_probs.min():.4f}, max={all_probs.max():.4f}, mean={all_probs.mean():.4f}')
 
         # Now apply threshold to get Final Preds
