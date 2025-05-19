@@ -11,12 +11,19 @@ def main():
     parser.add_argument('--binary', action='store_true', help='Use binary REM/NREM labels')
     parser.add_argument('--subject', type=int, nargs='*', default=None, help='Subject(s) to tune on. Default: all subjects')
     parser.add_argument("--export-csv", action="store_true", help="Export subject scores to CSV")
+    parser.add_argument("--dryrun", action="store_true", help="Run a minimal tuning pass for debugging")
+
 
     args = parser.parse_args()
 
     df = pd.read_csv(DATA_DIR / args.dataset) 
     all_subjects = sorted(df['subject_id'].unique())
     subjects_to_tune = args.subject if args.subject is not None else all_subjects
+
+    if args.dryrun:
+        print("⚠️ Running in DRYRUN mode (1 trial, 1 subject)")
+        args.trials = 1
+        subjects_to_tune = [7011]
 
     target_col = 'binary_label' if args.binary else 'label'
     non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}
