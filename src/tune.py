@@ -369,7 +369,7 @@ from optuna.visualization import plot_parallel_coordinate, plot_contour
 
 from src.paths import REPORT_DIR
 
-def analyze_study(study, report_name=None): 
+def analyze_study(study, report_name=None, output_dir=None): 
     '''
     Generates a visual and statistical analysis of an Optuna study, including:
         - Hyperparam importance
@@ -382,11 +382,11 @@ def analyze_study(study, report_name=None):
         report_name (str): Optional custom name to inlcude in the output folder name
     '''
 
-    timestamp = datetime.now().strftime('%Y-%m-%d') 
-    folder_name = f'study_{report_name}_{timestamp}' if report_name else f'study_{timestamp}'
-    output_dir = REPORT_DIR / folder_name
+    if output_dir is None: 
+        timestamp = datetime.now().strftime('%Y-%m-%d') 
+        name = f'study_{report_name}_{timestamp}' if report_name else f'study_{timestamp}'
+        output_dir = REPORT_DIR / name
     output_dir.mkdir(parents=True, exist_ok=True)
-
 
     # --- Importance Bar Plot ---
     importances = get_param_importances(study)

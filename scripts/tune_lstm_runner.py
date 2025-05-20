@@ -1,5 +1,6 @@
 import argparse 
 import pandas as pd 
+from datetime import datetime
 
 from src.paths import DATA_DIR, REPORT_DIR
 from src.tune import optuna_lstm_tuner
@@ -55,15 +56,23 @@ def main():
     for k, v in best_params.items(): 
         print(f'  {k}: {v}')
 
+    timestamp = datetime.now().strftime('%Y-%m-%d')
+    subject_str = args.subject[0] if args.subject and len(args.subject) == 1 else 'Multiple Subjects'
+    folder_name = f"study_{subject_str}_{timestamp}"
+    output_dir = REPORT_DIR / folder_name
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+
     # Write Markdown Summary:
     write_study_summary_md(
         study=study, 
-        subject=args.subject[0] if args.subject and len(args.subject) == 1 else 'Multiple Subjects'
+        subject=subject_str,
+        out_dir=output_dir
     )
 
     if args.analyze:
         from src.tune import analyze_study  
-        analyze_study(study, report_name=f's{args.subject}')
+        analyze_study(study, output_dir=output_dir)
 
 if __name__ == '__main__':
     main()

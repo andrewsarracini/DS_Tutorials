@@ -478,10 +478,10 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
         top_n (int): number of top trials to include in the TTT 
     '''
 
-    timestamp = datetime.now().strftime('%Y-%m-%d') 
-    folder_name = f'study_{subject}_{timestamp}' if subject else f'study_{timestamp}'
-    output_dir = Path(out_dir) / folder_name 
-    output_dir.mkdir(parents=True, exist_ok=True) 
+    timestamp = datetime.now().strftime('%Y-%m-%d')
+
+    output_dir = Path(out_dir)
+    summary_path = output_dir / f'optuna_summary_{timestamp}.md'
 
     df = study.trials_dataframe()
     df_sorted = df.sort_values('value', ascending=False).reset_index(drop=True)
@@ -550,9 +550,13 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 # Gonna be cool, force it to open in Preview mode in VS 
 
 import subprocess
+import platform
 
-def open_md_vs(md_path): 
+def open_md_vs(md_path):
     try:
-        subprocess.run(['code', '--reuse-window', '--preview', str(md_path)], check=False)
+        if platform.system() == "Windows":
+            subprocess.run(["code", "--reuse-window", "--goto", str(md_path)], check=True)
+        else:
+            print(f"📂 Markdown file saved to {md_path}. Please open manually.")
     except Exception as e:
-        print(f'⚠️ Could not open Markdown preview: {e}')
+        print(f"⚠️ Could not open Markdown preview: {e}")
