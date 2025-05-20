@@ -190,7 +190,7 @@ def loso_lstm(config):
                 logger.info(f"{label:<5} | F1: {stats['f1-score']:.4f} | Precision: {stats['precision']:.4f} | Recall: {stats['recall']:.4f} | Support: {int(stats['support'])}")
             print_eval_summary(all_preds, all_targets, encoder_path)
 
-    print(f'\n[FINAL] | Weighted F1: {f1:.4f} | Accuracy: {acc:.4f}\n')
+    print(f'\n[METRICS] | Weighted F1: {f1:.4f} | Accuracy: {acc:.4f}\n')
 
     return {
         'val_targets': all_targets, 

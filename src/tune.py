@@ -386,7 +386,7 @@ def analyze_study(study, report_name=None):
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
-    # --- Important Bar Plot ---
+    # --- Importance Bar Plot ---
     importances = get_param_importances(study)
 
     plt.figure(figsize=(8,4)) 
@@ -400,13 +400,11 @@ def analyze_study(study, report_name=None):
     # --- Correlation Heatmap --- 
     df = study.trials_dataframe() 
     filtered = df[[col for col in df.columns if col.startswith('params_')] + ['value']].dropna()
-
     corr = filtered.corr()
-    matrix = np.triu(corr) 
 
     plt.figure(figsize=(6, len(corr)//2)) 
     sns.heatmap(corr[['value']].sort_values(by='value', ascending=False), 
-                annot=True, cmap='coolwarm', mask=matrix)
+                annot=True, cmap='coolwarm')
     plt.title('Correlation with F1') 
     plt.tight_layout()
     plt.savefig(output_dir / 'corr_heatmap.png')
