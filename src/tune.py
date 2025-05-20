@@ -1,8 +1,11 @@
 import csv
 import datetime
+from os import mkdir
+import matplotlib.pyplot as plt
 from imblearn.pipeline import Pipeline as imbpipeline
 from imblearn.over_sampling import SMOTE
 from matplotlib.pyplot import step
+import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedKFold, train_test_split
 from torch import lstm, threshold
@@ -357,3 +360,62 @@ def export_subject_scores(study, path=None):
         df.to_csv(path, index=False) 
         print(f"✅ Exported subject scores to {path}")
         
+# ----------------------------------------
+# Leveraging Optuna's Wealth of Built-Ins! 
+
+from optuna.importance import get_param_importances
+from optuna.visualization import plot_parallel_coordinate, plot_contour
+
+def analyze_study(study, output_dir = LOG_DIR / 'optuna_analysis'): 
+    '''
+    Generates a visual and statistical analysis of an Optuna study, including:
+        - Hyperparam importance
+        - Correlation heatmaps
+        - Paralell coordinate plot
+        - Contour plots for key pairs
+
+    Args: 
+        study (optuna): Completed Optuna study object 
+        output_dir (str or Path): Directory to save the output plots
+    '''
+    output_dir = Path(output_dir)
+    output_dir = mkdir(parents=True, exist_okay=True) 
+
+    # --- Important Bar Plot ---
+    importances = get_param_importances(study)
+
+    plt.figure(figsize=(8,4)) 
+    plt.bar(importances.keys(), importances.values())
+    plt.title('Hyperparameter Importance (F1)') 
+    plt.ylabel('Optuna Importance Score') 
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'f1_importance_barplot.png') 
+
+    # --- Correlation Heatmap --- 
+    df = study.trials_dataframe() 
+    filtered = df[[col for col in df.columns if col.startswith('params_')] + ['value']].dropna()
+
+    corr = filtered.corr()
+    matrix = np.triu(corr) 
+
+    plt.figure(figsize=(6, len(corr)//2)) 
+    sns.heatmap(corr[['value']].sort_values(by='value', ascending=False), 
+                annot=True, cmap='coolwarm', mask=matrix)
+    plt.title('Correlation with F1') 
+    plt.tight_layout()
+    plt.savefig(output_dir / 'corr_heatmap.png')
+    plt.close()
+
+    # --- Paralell Coordinate Plot ---  
+    fig = plot_parallel_coordinate(study) 
+    fig.write_image(str(output_dir / 'paralell_coords.png')) 
+
+    # --- Contour Plots for Top 2 Numerical Params --- 
+    top_numeric = [k for k in importances if isinstance(importances[k], (int, float))][:2]
+
+    if len(top_numeric) == 2: 
+        fig = plot_contour(study, params=top_numeric)
+        fig.write_image(str(output_dir / 'contour_plot.png')) 
+
+    print(f'✅ Optuna Analysis report saved to {output_dir.resolve()}') 
