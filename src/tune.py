@@ -380,10 +380,11 @@ def analyze_study(study, report_name=None):
         report_name (str): Optional custom name to inlcude in the output folder name
     '''
 
-    timestamp = datetime.now().strftime('%Y-%,-%d') 
+    timestamp = datetime.now().strftime('%Y-%m-%d') 
     name = f'study_{report_name}_{timestamp}' if report_name else f'f_study_{timestamp}'
     output_dir = PLOT_DIR / 'optuna' / name
-    output_dir = mkdir(parents=True, exist_okay=True) 
+    output_dir.mkdir(parents=True, exist_ok=True)
+
 
     # --- Important Bar Plot ---
     importances = get_param_importances(study)
