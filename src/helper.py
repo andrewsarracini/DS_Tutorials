@@ -428,7 +428,7 @@ def print_eval_summary(preds, targets, encoder_path):
     logger.info("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
     print("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
 
-from src.paths import ENCODER_DIR
+from src.paths import ENCODER_DIR, REPORT_DIR
 
 # loso_lstm --- refactor
 def encode_labels(df_train, df_test, label_col, subject_id, save_dir=ENCODER_DIR):
@@ -460,4 +460,84 @@ def build_dataloaders(df_train, df_test, feature_cols, label_col, window_size, s
     }
 
 
+# Directly interfaces with src/tune-- optuna_tuner stuff:
+from datetime import datetime
 
+def write_study_summary(study, subject=None, out_dir=None, top_n=5): 
+    '''
+    Writes a clean markdown summary of an Optuna study
+        - Best trial
+        - Top Trial Table (TTT)
+        - Paths to the saved viz 
+    
+    Args: 
+        study (optuna): Copmleted Optuna study object-- optuna CLI runner (for more info)
+        stubject (int): Optional subject ID for clarity in study
+        out_dir (str, Path): Optional folder to save the .md file 
+        top_n (int): number of top trials to include in the TTT 
+    '''
+    timestamp = datetime.now().strftime('%Y-%m-%d') 
+    name = f'study_{subject}_{timestamp}' if subject else f'study_{timestamp}'
+
+    report_path = Path(out_dir) if out_dir else REPORT_DIR / 'optuna' / name
+    report_path.mkdir(parents=True, exist_ok=True) 
+
+    df = study.trials_dataframe()
+    df_sorted = df.sort_values('value', ascending=False).reset_index(drop=True)
+
+    best = df_sorted.iloc[0]
+    best_params = {
+        k.replace('params', ''): v
+        for k, v in best.items()
+        if k.startswith('params_')
+    }
+    
+    markdown = [] 
+
+    # --- Header ---
+    markdown.append(f'#Optuna LSTM Tuning Summary')
+    markdown.append(f'Date: {timestamp}') 
+    if subject: 
+        markdown.append(f'Subject: {subject}')
+    markdown.append(f'Trials: {len(df)}') 
+    markdown.append(f'Objective: Maximize F1 Score') 
+    markdown.append('\n---\n')
+
+    # --- Best Trial --- 
+    markdown.append(f'## Best Trial') 
+    markdown.append(f'- **F1 Score**: {best['value']:.4f}')
+    markdown.append(f'- **Threshold**: {best.get('user_attrs_best_thresh', 'N/A')}')
+    markdown.append(f'- **Accuracy**: {best.get('user_attrs_accuracy', 'N/A')}')
+    markdown.append(f'- **Params**')
+    for k, v in best_params.items():
+        markdown.append(f"  - `{k}`: {v}")
+    markdown.append("\n---\n")
+
+        # --- Top Trials Table ---
+    markdown.append(f"## Top {top_n} Trials")
+    markdown.append(f"| Trial | F1 Score | Threshold | Accuracy |")
+    markdown.append(f"|-------|----------|-----------|----------|")
+
+
+    for i, row in df_sorted.head(top_n).iterrows():
+        f1 = row["value"]
+        thresh = row.get("user_attrs_best_thresh", "N/A")
+        acc = row.get("user_attrs_accuracy", "N/A")
+        markdown.append(f"| {row['number']} | {f1:.4f} | {thresh} | {acc} |")
+
+    markdown.append("\n---\n")
+    
+    # --- Visualizations ---
+    markdown.append("## Visualizations")
+    markdown.append("- `f1_importance_barplot.png`")
+    markdown.append("- `corr_heatmap.png`")
+    markdown.append("\n---\n")
+
+    # --- Notes ---
+    markdown.append(f'## Notes')
+
+    # --- Write to file --- 
+    summary_path = out_dir / f'optuna_summary_{timestamp}.md'
+    summary_path.write_text('\n'.join(markdown))
+
+    print(f'✅ Markdown summary saved to: {summary_path.resolve()}')

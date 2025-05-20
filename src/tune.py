@@ -367,6 +367,8 @@ def export_subject_scores(study, path=None):
 from optuna.importance import get_param_importances
 from optuna.visualization import plot_parallel_coordinate, plot_contour
 
+from src.paths import REPORT_DIR
+
 def analyze_study(study, report_name=None): 
     '''
     Generates a visual and statistical analysis of an Optuna study, including:
@@ -382,7 +384,7 @@ def analyze_study(study, report_name=None):
 
     timestamp = datetime.now().strftime('%Y-%m-%d') 
     name = f'study_{report_name}_{timestamp}' if report_name else f'study_{timestamp}'
-    output_dir = PLOT_DIR / 'optuna' / name
+    output_dir = REPORT_DIR / 'optuna' / name
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
