@@ -373,7 +373,7 @@ def analyze_study(study, report_name=None):
         - Hyperparam importance
         - Correlation heatmaps
         - Paralell coordinate plot
-        - Contour plots for key pairs
+        - Contour plots for top 2 numeric hyperparams 
 
     Args: 
         study (optuna): Completed Optuna study object 
@@ -381,7 +381,7 @@ def analyze_study(study, report_name=None):
     '''
 
     timestamp = datetime.now().strftime('%Y-%m-%d') 
-    name = f'study_{report_name}_{timestamp}' if report_name else f'f_study_{timestamp}'
+    name = f'study_{report_name}_{timestamp}' if report_name else f'study_{timestamp}'
     output_dir = PLOT_DIR / 'optuna' / name
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -396,13 +396,14 @@ def analyze_study(study, report_name=None):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.savefig(output_dir / 'f1_importance_barplot.png') 
+    plt.close()
 
     # --- Correlation Heatmap --- 
     df = study.trials_dataframe() 
     filtered = df[[col for col in df.columns if col.startswith('params_')] + ['value']].dropna()
     corr = filtered.corr()
 
-    plt.figure(figsize=(6, len(corr)//2)) 
+    plt.figure(figsize=(6, len(corr) // 2)) 
     sns.heatmap(corr[['value']].sort_values(by='value', ascending=False), 
                 annot=True, cmap='coolwarm')
     plt.title('Correlation with F1') 
@@ -410,20 +411,26 @@ def analyze_study(study, report_name=None):
     plt.savefig(output_dir / 'corr_heatmap.png')
     plt.close()
 
-    # --- Paralell Coordinate Plot ---  
-    fig = plot_parallel_coordinate(study) 
-    fig.write_image(str(output_dir / 'paralell_coords.png')) 
 
-    # --- Contour Plots for Top 2 Numerical Params --- 
-    top_numeric = [k for k in importances if isinstance(importances[k], (int, float))][:2]
+    # --- Contour Plot of Top 2 Numeric Params ---
+    try:
+        # Filter to numeric params with >1 unique value
+        numeric_params = [
+            col.replace("params_", "")
+            for col in df.columns
+            if col.startswith("params_") and pd.api.types.is_numeric_dtype(df[col]) and df[col].nunique() > 1
+        ]
+        top_numeric = [p for p in importances if p in numeric_params][:2]
 
-    if len(top_numeric) == 2: 
-        fig = plot_contour(study, params=top_numeric)
-        fig.write_image(str(output_dir / 'contour_plot.png')) 
+        if len(top_numeric) == 2:
+            fig = plot_contour(study, params=top_numeric)
+            fig.write_image(str(output_dir / 'contour_plot.png'))
+    except Exception as e:
+        print(f"⚠️ Failed to save contour plot: {e}")
 
-    print(f'✅ Optuna Analysis report saved to {output_dir.resolve()}') 
+    print(f"✅ Optuna analysis report saved to: {output_dir.resolve()}")
 
-    try: 
+    try:
         os.startfile(output_dir.resolve())
     except Exception:
         pass
