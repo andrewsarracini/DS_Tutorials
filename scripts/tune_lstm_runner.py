@@ -26,10 +26,6 @@ def main():
         args.trials = 1
         subjects_to_tune = [7011]
 
-    if args.analyze:
-        from src.tune import analyze_study  
-        analyze_study(study)
-
     target_col = 'binary_label' if args.binary else 'label'
     non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}
     feature_cols = [col for col in df.columns if col not in non_feat_cols]
@@ -57,6 +53,10 @@ def main():
     print('\n✅ Best params found:')
     for k, v in best_params.items(): 
         print(f'  {k}: {v}')
+
+    if args.analyze:
+        from src.tune import analyze_study  
+        analyze_study(study)
 
 if __name__ == '__main__':
     main()
