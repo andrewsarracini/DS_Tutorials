@@ -1,8 +1,9 @@
 import argparse 
 import pandas as pd 
 
-from src.paths import DATA_DIR
+from src.paths import DATA_DIR, REPORT_DIR
 from src.tune import optuna_lstm_tuner
+from src.helper import write_study_summary_md
 
 def main(): 
     parser = argparse.ArgumentParser(description='Run Optuna tuning across subjects') 
@@ -53,6 +54,12 @@ def main():
     print('\n✅ Best params found:')
     for k, v in best_params.items(): 
         print(f'  {k}: {v}')
+
+    # Write Markdown Summary:
+    write_study_summary_md(
+        study=study, 
+        subject=args.subject[0] if args.subject and len(args.subject) == 1 else 'Multiple Subjects'
+    )
 
     if args.analyze:
         from src.tune import analyze_study  

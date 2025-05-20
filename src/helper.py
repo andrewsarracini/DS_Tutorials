@@ -462,8 +462,9 @@ def build_dataloaders(df_train, df_test, feature_cols, label_col, window_size, s
 
 # Directly interfaces with src/tune-- optuna_tuner stuff:
 from datetime import datetime
+from src.paths import REPORT_DIR
 
-def write_study_summary(study, subject=None, out_dir=None, top_n=5): 
+def write_study_summary_md(study, subject=None, out_dir=None, top_n=5): 
     '''
     Writes a clean markdown summary of an Optuna study
         - Best trial
@@ -476,16 +477,17 @@ def write_study_summary(study, subject=None, out_dir=None, top_n=5):
         out_dir (str, Path): Optional folder to save the .md file 
         top_n (int): number of top trials to include in the TTT 
     '''
-    timestamp = datetime.now().strftime('%Y-%m-%d') 
-    name = f'study_{subject}_{timestamp}' if subject else f'study_{timestamp}'
 
-    report_path = Path(out_dir) if out_dir else REPORT_DIR / 'optuna' / name
-    report_path.mkdir(parents=True, exist_ok=True) 
+    timestamp = datetime.now().strftime('%Y-%m-%d') 
+    base_dir = Path(out_dir) if out_dir else REPORT_DIR 
+    name = f'study_{subject}_{timestamp}' if subject else f'study_{timestamp}'
+    report_dir = base_dir / name 
+    report_dir.mkdir(parents=True, exist_ok=True) 
 
     df = study.trials_dataframe()
     df_sorted = df.sort_values('value', ascending=False).reset_index(drop=True)
-
     best = df_sorted.iloc[0]
+
     best_params = {
         k.replace('params', ''): v
         for k, v in best.items()
