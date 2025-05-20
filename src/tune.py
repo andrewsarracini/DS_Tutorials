@@ -397,6 +397,7 @@ def analyze_study(study, report_name=None):
     plt.tight_layout()
     plt.savefig(output_dir / 'f1_importance_barplot.png') 
     plt.close()
+    
 
     # --- Correlation Heatmap --- 
     df = study.trials_dataframe() 
@@ -410,6 +411,14 @@ def analyze_study(study, report_name=None):
     plt.tight_layout()
     plt.savefig(output_dir / 'corr_heatmap.png')
     plt.close()
+
+
+    # --- Parallel Coordinate Plot ---
+    try:
+        fig = plot_parallel_coordinate(study)
+        fig.write_image(str(output_dir / 'parallel_coords.png'))
+    except Exception as e:
+        print(f"⚠️ Failed to save parallel coordinate plot: {e}")
 
 
     # --- Contour Plot of Top 2 Numeric Params ---
