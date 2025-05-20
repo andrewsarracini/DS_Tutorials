@@ -12,6 +12,7 @@ def main():
     parser.add_argument('--subject', type=int, nargs='*', default=None, help='Subject(s) to tune on. Default: all subjects')
     parser.add_argument("--export-csv", action="store_true", help="Export subject scores to CSV")
     parser.add_argument("--dryrun", action="store_true", help="Run a minimal tuning pass for debugging")
+    parser.add_argument("--analyze", action="store_true", help="Generate Optuna study analysis plots after tuning")
 
 
     args = parser.parse_args()
@@ -24,6 +25,10 @@ def main():
         print("⚠️ Running in DRYRUN mode (1 trial, 1 subject)")
         args.trials = 1
         subjects_to_tune = [7011]
+
+    if args.analyze:
+        from src.tune import analyze_study  
+        analyze_study(study)
 
     target_col = 'binary_label' if args.binary else 'label'
     non_feat_cols = {target_col, 'label', 'binary_label', 'subject_id'}

@@ -19,6 +19,7 @@ from pathlib import Path
 
 import warnings
 import time
+import os
 
 from src.helper import save_best_params, load_best_params
 from src.logger_setup import logger 
@@ -26,7 +27,7 @@ from src.helper import stratified_sample, dynamic_param_grid, param_spaces
 
 import json
 
-from src.paths import LOG_DIR
+from src.paths import LOG_DIR, PLOT_DIR
 
 def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20, verbose=True):
     '''
@@ -366,7 +367,7 @@ def export_subject_scores(study, path=None):
 from optuna.importance import get_param_importances
 from optuna.visualization import plot_parallel_coordinate, plot_contour
 
-def analyze_study(study, output_dir = LOG_DIR / 'optuna_analysis'): 
+def analyze_study(study, report_name=None): 
     '''
     Generates a visual and statistical analysis of an Optuna study, including:
         - Hyperparam importance
@@ -376,9 +377,12 @@ def analyze_study(study, output_dir = LOG_DIR / 'optuna_analysis'):
 
     Args: 
         study (optuna): Completed Optuna study object 
-        output_dir (str or Path): Directory to save the output plots
+        report_name (str): Optional custom name to inlcude in the output folder name
     '''
-    output_dir = Path(output_dir)
+
+    timestamp = datetime.now().strftime('%Y-%,-%d') 
+    name = f'study_{report_name}_{timestamp}' if report_name else f'f_study_{timestamp}'
+    output_dir = PLOT_DIR / 'optuna' / name
     output_dir = mkdir(parents=True, exist_okay=True) 
 
     # --- Important Bar Plot ---
@@ -419,3 +423,8 @@ def analyze_study(study, output_dir = LOG_DIR / 'optuna_analysis'):
         fig.write_image(str(output_dir / 'contour_plot.png')) 
 
     print(f'✅ Optuna Analysis report saved to {output_dir.resolve()}') 
+
+    try: 
+        os.startfile(output_dir.resolve())
+    except Exception:
+        pass
