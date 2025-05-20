@@ -497,11 +497,11 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 
     # --- Header ---
     markdown.append(f'# Optuna LSTM Tuning Summary')
-    markdown.append(f'Date: {timestamp}') 
+    markdown.append(f'- Date: {timestamp}') 
     if subject: 
-        markdown.append(f'Subject: {subject}')
-    markdown.append(f'Trials: {len(df)}') 
-    markdown.append(f'Objective: Maximize F1 Score') 
+        markdown.append(f'- Subject: {subject}')
+    markdown.append(f'- Trials: {len(df)}') 
+    markdown.append(f'- Objective: Maximize F1 Score') 
     markdown.append('\n---\n')
 
     # --- Best Trial --- 
@@ -551,11 +551,13 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 
 import subprocess
 import platform
+import os
 
 def open_md_vs(md_path):
     try:
         if platform.system() == "Windows":
-            subprocess.run(["code", "--reuse-window", "--goto", str(md_path)], check=True)
+            # Opens file with default associated app (VS Code preview if set)
+            os.startfile(str(md_path))
         else:
             print(f"📂 Markdown file saved to {md_path}. Please open manually.")
     except Exception as e:

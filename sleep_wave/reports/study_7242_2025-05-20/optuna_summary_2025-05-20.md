@@ -1,13 +1,13 @@
 # Optuna LSTM Tuning Summary
 Date: 2025-05-20
-Subject: 7242
-Trials: 2
-Objective: Maximize F1 Score
+- Subject: 7242
+- Trials: 2
+- Objective: Maximize F1 Score
 
 ---
 
 ## Best Trial
-- **F1 Score**: 0.7912
+- **F1 Score**: 0.7924
 - **Threshold**: N/A
 - **Accuracy**: N/A
 - **Params**
@@ -27,8 +27,8 @@ Objective: Maximize F1 Score
 ## Top 5 Trials
 | Trial | F1 Score | Threshold | Accuracy |
 |-------|----------|-----------|----------|
-| 1 | 0.7912 | N/A | N/A |
-| 0 | 0.3730 | N/A | N/A |
+| 1 | 0.7924 | N/A | N/A |
+| 0 | 0.3354 | N/A | N/A |
 
 ---
 
