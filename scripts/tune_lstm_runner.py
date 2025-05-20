@@ -63,7 +63,7 @@ def main():
 
     if args.analyze:
         from src.tune import analyze_study  
-        analyze_study(study)
+        analyze_study(study, report_name=f's{args.subject}')
 
 if __name__ == '__main__':
     main()

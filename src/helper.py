@@ -464,7 +464,7 @@ def build_dataloaders(df_train, df_test, feature_cols, label_col, window_size, s
 from datetime import datetime
 from src.paths import REPORT_DIR
 
-def write_study_summary_md(study, subject=None, out_dir=None, top_n=5): 
+def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5): 
     '''
     Writes a clean markdown summary of an Optuna study
         - Best trial
@@ -479,17 +479,16 @@ def write_study_summary_md(study, subject=None, out_dir=None, top_n=5):
     '''
 
     timestamp = datetime.now().strftime('%Y-%m-%d') 
-    base_dir = Path(out_dir) if out_dir else REPORT_DIR 
-    name = f'study_{subject}_{timestamp}' if subject else f'study_{timestamp}'
-    report_dir = base_dir / name 
-    report_dir.mkdir(parents=True, exist_ok=True) 
+    folder_name = f'study_{subject}_{timestamp}' if subject else f'study_{timestamp}'
+    output_dir = Path(out_dir) / folder_name 
+    output_dir.mkdir(parents=True, exist_ok=True) 
 
     df = study.trials_dataframe()
     df_sorted = df.sort_values('value', ascending=False).reset_index(drop=True)
     best = df_sorted.iloc[0]
 
     best_params = {
-        k.replace('params', ''): v
+        k.replace('params', '').lstrip('_'): v
         for k, v in best.items()
         if k.startswith('params_')
     }
@@ -497,7 +496,7 @@ def write_study_summary_md(study, subject=None, out_dir=None, top_n=5):
     markdown = [] 
 
     # --- Header ---
-    markdown.append(f'#Optuna LSTM Tuning Summary')
+    markdown.append(f'# Optuna LSTM Tuning Summary')
     markdown.append(f'Date: {timestamp}') 
     if subject: 
         markdown.append(f'Subject: {subject}')
@@ -507,9 +506,9 @@ def write_study_summary_md(study, subject=None, out_dir=None, top_n=5):
 
     # --- Best Trial --- 
     markdown.append(f'## Best Trial') 
-    markdown.append(f'- **F1 Score**: {best['value']:.4f}')
-    markdown.append(f'- **Threshold**: {best.get('user_attrs_best_thresh', 'N/A')}')
-    markdown.append(f'- **Accuracy**: {best.get('user_attrs_accuracy', 'N/A')}')
+    markdown.append(f"- **F1 Score**: {best['value']:.4f}")
+    markdown.append(f"- **Threshold**: {best.get('user_attrs_best_thresh', 'N/A')}")
+    markdown.append(f"- **Accuracy**: {best.get('user_attrs_accuracy', 'N/A')}")
     markdown.append(f'- **Params**')
     for k, v in best_params.items():
         markdown.append(f"  - `{k}`: {v}")
@@ -539,7 +538,21 @@ def write_study_summary_md(study, subject=None, out_dir=None, top_n=5):
     markdown.append(f'## Notes')
 
     # --- Write to file --- 
-    summary_path = out_dir / f'optuna_summary_{timestamp}.md'
+    summary_path = output_dir / f'optuna_summary_{timestamp}.md'
     summary_path.write_text('\n'.join(markdown))
+    
+    # Force it to open in VS code (Preview Mode!) 
+    open_md_vs(summary_path) 
 
     print(f'✅ Markdown summary saved to: {summary_path.resolve()}')
+
+# Lightweight Markdown helper! 
+# Gonna be cool, force it to open in Preview mode in VS 
+
+import subprocess
+
+def open_md_vs(md_path): 
+    try:
+        subprocess.run(['code', '--reuse-window', '--preview', str(md_path)], check=False)
+    except Exception as e:
+        print(f'⚠️ Could not open Markdown preview: {e}')

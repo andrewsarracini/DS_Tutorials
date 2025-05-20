@@ -383,8 +383,8 @@ def analyze_study(study, report_name=None):
     '''
 
     timestamp = datetime.now().strftime('%Y-%m-%d') 
-    name = f'study_{report_name}_{timestamp}' if report_name else f'study_{timestamp}'
-    output_dir = REPORT_DIR / name
+    folder_name = f'study_{report_name}_{timestamp}' if report_name else f'study_{timestamp}'
+    output_dir = REPORT_DIR / folder_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
