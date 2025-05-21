@@ -507,8 +507,8 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
     # --- Best Trial --- 
     markdown.append(f'## Best Trial') 
     markdown.append(f"- **F1 Score**: {best['value']:.4f}")
-    markdown.append(f"- **Threshold**: {best.get('user_attrs_best_thresh', 'N/A')}")
-    markdown.append(f"- **Accuracy**: {best.get('user_attrs_accuracy', 'N/A')}")
+    markdown.append(f"- **Threshold**: {best.get('thresh', 'N/A')}")
+    markdown.append(f"- **Accuracy**: {best.get('acc', 'N/A')}")
     markdown.append(f'- **Params**')
     for k, v in best_params.items():
         markdown.append(f"  - `{k}`: {v}")
@@ -550,17 +550,17 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 # Gonna be cool, force it to open in Preview mode in VS 
 
 import subprocess
-import platform
 from pathlib import Path
 
-def open_md_vs(md_path: Path):
+import os
+
+def open_md_vs(md_path):
     try:
-        if platform.system() == "Windows":
-            subprocess.run(["code", str(md_path)], check=True)
-        else:
-            print(f"📂 Markdown file saved to {md_path}. Please open manually.")
+        # Use shell=True to resolve 'code' the same way your terminal does
+        subprocess.run(f"code \"{md_path}\"", check=True, shell=True)
     except Exception as e:
         print(f"⚠️ Could not open Markdown file: {e}")
+
 
     # Note to future self: 
     # Tried hard to get the md to appear in preview mode

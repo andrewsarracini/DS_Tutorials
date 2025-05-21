@@ -312,15 +312,13 @@ def optuna_lstm_tuner(n_trials=30, random_state=10,
         avg_f1 = np.mean(f1_scores) 
 
         # Grab subject with the best f1 to extract threshold thresh and acc for summary
-        best_subject = max(subject_results.items(), key=lambda x: x[1]['f1'])[1]
+        best_subject_result = max(subject_results.values(), key=lambda x: x['f1'])
 
-        trial.set_user_attr('avg_f1', avg_f1) 
-        trial.set_user_attr('subject_scores', subject_results) 
+        trial.set_user_attr('avg_f1', avg_f1)
+        trial.set_user_attr('subject_scores', subject_results)
         trial.set_user_attr('params', trial_config)
-
-        # Ensures Markdown gest the right summary results:
-        trial.set_user_attr('best_thresh', best_subject.get('threshold', 'N/A'))
-        trial.set_user_attr('accuracy', best_subject.get('accuracy', 'N/A'))
+        trial.set_user_attr('best_thresh', best_subject_result.get('threshold', 'N/A'))
+        trial.set_user_attr('accuracy', best_subject_result.get('accuracy', 'N/A'))
 
         return avg_f1
                     
