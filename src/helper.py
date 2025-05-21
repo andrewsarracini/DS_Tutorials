@@ -551,21 +551,18 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 
 import subprocess
 import platform
-import os
+from pathlib import Path
 
-
-def open_md_vs(md_path):
-    '''
-    Opens a markdown file in VSCode preview mode using a workaround
-    If the preview fails, then simulates Ctrl+Shift+V in VS Code
-    '''
-
+def open_md_vs(md_path: Path):
     try:
         if platform.system() == "Windows":
-            # Use the absolute path to code.cmd to ensure it works in subprocess
-            code_path = Path("C:/Users/andre/AppData/Local/Programs/Microsoft VS Code/bin/code.cmd")
-            subprocess.run([str(code_path), "--reuse-window", "--goto", str(md_path)], check=True)
+            subprocess.run(["code", str(md_path)], check=True)
         else:
             print(f"📂 Markdown file saved to {md_path}. Please open manually.")
     except Exception as e:
-        print(f"⚠️ Could not open Markdown preview: {e}")
+        print(f"⚠️ Could not open Markdown file: {e}")
+
+    # Note to future self: 
+    # Tried hard to get the md to appear in preview mode
+    # ... did not work-- I don't think VS Code supports it
+    # Manual is the way for now!

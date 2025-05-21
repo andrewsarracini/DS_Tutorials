@@ -7,7 +7,7 @@
 ---
 
 ## Best Trial
-- **F1 Score**: 0.5745
+- **F1 Score**: 0.7729
 - **Threshold**: N/A
 - **Accuracy**: N/A
 - **Params**
@@ -27,8 +27,8 @@
 ## Top 5 Trials
 | Trial | F1 Score | Threshold | Accuracy |
 |-------|----------|-----------|----------|
-| 1 | 0.5745 | N/A | N/A |
-| 0 | 0.5720 | N/A | N/A |
+| 1 | 0.7729 | N/A | N/A |
+| 0 | 0.3383 | N/A | N/A |
 
 ---
 
