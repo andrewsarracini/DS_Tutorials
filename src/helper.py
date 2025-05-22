@@ -485,13 +485,13 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 
     df = study.trials_dataframe()
     df_sorted = df.sort_values('value', ascending=False).reset_index(drop=True)
-    best = df_sorted.iloc[0]
 
-    best_params = {
-        k.replace('params', '').lstrip('_'): v
-        for k, v in best.items()
-        if k.startswith('params_')
-    }
+    best_trial_number = df_sorted.iloc[0]['number']
+    best_trial = [t for t in study.trials if t.number == best_trial_number][0]
+
+    best_params = best_trial.params
+    thresh = best_trial.user_attrs.get('best_thresh', 'N/A')
+    acc = best_trial.user_attrs.get('accuracy', 'N/A') 
     
     markdown = [] 
 
@@ -506,9 +506,10 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
 
     # --- Best Trial --- 
     markdown.append(f'## Best Trial') 
-    markdown.append(f"- **F1 Score**: {best['value']:.4f}")
-    markdown.append(f"- **Threshold**: {best.get('thresh', 'N/A')}")
-    markdown.append(f"- **Accuracy**: {best.get('acc', 'N/A')}")
+    markdown.append(f"- **F1 Score**: {best_trial.value:.4f}")
+    markdown.append(f"- **Threshold**: {thresh}")
+    markdown.append(f"- **Accuracy**: {round(acc,4)}")
+
     markdown.append(f'- **Params**')
     for k, v in best_params.items():
         markdown.append(f"  - `{k}`: {v}")
@@ -524,14 +525,17 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
         f1 = row["value"]
         thresh = row.get("user_attrs_best_thresh", "N/A")
         acc = row.get("user_attrs_accuracy", "N/A")
-        markdown.append(f"| {row['number']} | {f1:.4f} | {thresh} | {acc} |")
+        markdown.append(f"| {row['number']} | {f1:.4f} | {thresh} | {acc:.4f} |")
 
     markdown.append("\n---\n")
     
     # --- Visualizations ---
     markdown.append("## Visualizations")
-    markdown.append("- `f1_importance_barplot.png`")
-    markdown.append("- `corr_heatmap.png`")
+    markdown.append("### Hyperparameter Importance")
+    markdown.append("![F1 Importance](f1_importance_barplot.png)")
+    markdown.append("")
+    markdown.append("### Correlation Heatmap")
+    markdown.append("![Correlation with F1](corr_heatmap.png)")
     markdown.append("\n---\n")
 
     # --- Notes ---

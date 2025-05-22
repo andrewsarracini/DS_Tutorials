@@ -317,8 +317,8 @@ def optuna_lstm_tuner(n_trials=30, random_state=10,
         trial.set_user_attr('avg_f1', avg_f1)
         trial.set_user_attr('subject_scores', subject_results)
         trial.set_user_attr('params', trial_config)
-        trial.set_user_attr('best_thresh', best_subject_result.get('threshold', 'N/A'))
-        trial.set_user_attr('accuracy', best_subject_result.get('accuracy', 'N/A'))
+        trial.set_user_attr('best_thresh', best_subject_result.get('thresh', 'N/A'))
+        trial.set_user_attr('accuracy', best_subject_result.get('acc', 'N/A'))
 
         return avg_f1
                     
