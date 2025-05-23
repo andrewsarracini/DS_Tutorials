@@ -10,7 +10,7 @@ import seaborn as sns
 from collections import Counter
 
 from src.datasets.sequence_dataset import LSTMDataset
-from src.models import loso_lstm
+from src.models.loso_lstm import loso_lstm
 
 
 # from train.py
