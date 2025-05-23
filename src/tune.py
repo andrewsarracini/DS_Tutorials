@@ -451,3 +451,57 @@ def analyze_study(study, report_name=None, output_dir=None):
         os.startfile(output_dir.resolve())
     except Exception:
         pass
+
+# sleep_wave validation tool 
+def eval_best_config(config, subjects, static_config, verbose=True): 
+    '''
+    Re-evaluates a given hyper-param config across specified subjects 
+
+    Args: 
+        config (dict): The best trial hyperparameter config 
+        subjects (list[int]): List of subject IDs to eval 
+        static_config (dict): Shared config containing df, feature_cols, label_col, etc.
+        verbose (bool): If true, prints metrics for each subject 
+
+    Returns: 
+        dict: Summary with per-subject metrics and overall averages
+    '''
+
+    results = {}
+    f1s = [] 
+    accs = []
+
+    for subject in subjects: 
+        full_config = {
+            **static_config, 
+            **config, 
+            'target_subject': subject
+        }
+
+        result = loso_lstm(full_config) 
+        f1 = result['f1_weighted'] 
+        acc = result.get('accuracy', None) 
+
+        results[subject] = {
+            'f1': f1,
+            'accuracy': acc, 
+            'threshold': result.get('threshold') 
+        }
+
+        f1.append(f1) 
+        if acc is not None:
+            acc.append(acc) 
+
+        if verbose:
+            print(f"[{subject}] F1: {f1:.4f} | Accuracy: {acc:.4f}")
+
+    avg_f1 = np.mean(f1s)
+    avg_acc = np.mean(accs) if accs else None
+    if verbose: 
+            print(f"\n✅ Avg F1: {avg_f1:.4f} | Avg Accuracy: {avg_acc:.4f}")
+
+    return {
+        'subject_results': results, 
+        'avg_f1': avg_f1, 
+        'avg_accuracy': avg_acc
+    }
