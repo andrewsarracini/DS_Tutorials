@@ -1,37 +1,34 @@
 # Optuna LSTM Tuning Summary
 - Date: 2025-05-23
 - Subject: 7242
-- Trials: 25
+- Trials: 2
 - Objective: Maximize F1 Score
 
 ---
 
 ## Best Trial
-- **F1 Score**: 0.8273
-- **Threshold**: 0.59
-- **Accuracy**: 0.8302
+- **F1 Score**: 0.5725
+- **Threshold**: 0.53
+- **Accuracy**: 0.5255
 - **Params**
   - `hidden_size`: 64
-  - `num_layers`: 1
-  - `dropout`: 0.13732882308497943
+  - `num_layers`: 3
+  - `dropout`: 0.2994028049210362
   - `bidirectional`: True
-  - `learning_rate`: 0.0006893736626641891
+  - `learning_rate`: 0.003319414023327547
   - `stride`: 4
-  - `seq_len`: 128
+  - `seq_len`: 32
   - `epochs`: 13
-  - `batch_size`: 32
-  - `weight_decay`: 9.911301531041695e-05
+  - `batch_size`: 64
+  - `weight_decay`: 0.005666597524267947
 
 ---
 
 ## Top 5 Trials
 | Trial | F1 Score | Threshold | Accuracy |
 |-------|----------|-----------|----------|
-| 21 | 0.8273 | 0.59 | 0.8302 |
-| 18 | 0.8266 | 0.63 | 0.8258 |
-| 22 | 0.8242 | 0.6 | 0.8247 |
-| 15 | 0.8117 | 0.58 | 0.8094 |
-| 9 | 0.8035 | 0.67 | 0.8047 |
+| 0 | 0.5725 | 0.53 | 0.5255 |
+| 1 | 0.5496 | 0.58 | 0.5126 |
 
 ---
 
