@@ -8,7 +8,7 @@ from sklearn.utils.class_weight import compute_class_weight
 
 from src.models.lstm_model import SleepLSTM
 from src.models.train_lstm import train_lstm
-from src.helper import build_dataloaders, encode_labels, find_best_threshold, print_eval_summary
+from src.utils.lstm_utils import build_dataloaders, encode_labels, find_best_threshold, print_eval_summary
 from src.logger_setup import logger
 from src.paths import PLOT_DIR
 

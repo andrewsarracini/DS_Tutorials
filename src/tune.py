@@ -22,7 +22,7 @@ import time
 import os
 
 # from src.helper import save_best_params, load_best_params
-from src.utils.config_io import save_best_params, load_best_params
+from src.utils.lstm_utils import save_best_params, load_best_params
 from src.logger_setup import logger 
 from src.helper import stratified_sample, dynamic_param_grid, param_spaces
 
