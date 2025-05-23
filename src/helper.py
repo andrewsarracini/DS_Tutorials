@@ -10,6 +10,7 @@ import seaborn as sns
 from collections import Counter
 
 from src.datasets.sequence_dataset import LSTMDataset
+from src.models import loso_lstm
 
 # from tune.py
 def save_best_params(best_params, model_name, save_dir='../tuned_params'):
@@ -570,3 +571,72 @@ def open_md_vs(md_path):
     # Tried hard to get the md to appear in preview mode
     # ... did not work-- I don't think VS Code supports it
     # Manual is the way for now!
+
+def eval_best_config(config, subject_ids, static_config=None, save_md=False, save_csv=False):
+    '''
+    Evaluates a best param config across multiple subjects using LOSO.
+
+    Args:
+        config (dict): Best params found via Optuna or manual tuning.
+        subject_ids (list[int]): List of subject IDs to evaluate.
+        static_config (dict): Static options shared across all runs (df, feature_cols, etc).
+        save_md (bool): If True, saves a Markdown summary.
+        save_csv (bool): If True, saves a CSV file of results.
+
+    Returns:
+        pd.DataFrame: DataFrame of subject-level performance.
+    '''
+
+    results = []
+    for subject in subject_ids:
+        full_config = {
+            **static_config, 
+            **config, 
+            'target_subject': subject,
+            'verbose': False,
+            'auto_thresh': True, 
+            'plot_thresholds': False
+        }
+
+        result = loso_lstm(full_config)
+        results.append({
+            'subject': subject, 
+            'f1': result['f1_weighted'], 
+            'threshold': result.get('threshold'), 
+            'accuracy': result.get('accuracy') 
+        })
+
+    df = pd.DataFrame(results)
+    timestamp = datetime.now().strftime('%Y-%m-%d') 
+    folder = REPORT_DIR / f'eval_best_{timestamp}'
+    folder.mkdir(parents=True, exist_ok=True) 
+
+    if save_csv:
+        df.to_csv(folder / f'eval_results_{timestamp}.csv', index=False) 
+
+    if save_md:
+        lines = [
+            f"# Eval Best Config Report",
+            f"Date: {timestamp}",
+            f"Subjects: {len(subject_ids)}",
+            "",
+            "## Results Table",
+            "| Subject | F1 Score | Threshold | Accuracy |",
+            "|---------|----------|-----------|----------|"
+        ]
+        for _, row in df.iterrows():
+            lines.append(f"| {row['subject']} | {row['f1']:.4f} | {row['threshold']} | {row['accuracy']} |")
+
+        avg_f1 = df['f1'].mean()
+        avg_acc = df['accuracy'].mean()
+        lines += [
+            "",
+            f"**Average F1**: {avg_f1:.4f}",
+            f"**Average Accuracy**: {avg_acc:.4f}"
+        ]
+
+        (folder / f'eval_summary_{timestamp}.md').write_text('\n'.join(lines)) 
+
+    print(f"✅ Evaluation complete. Results saved to: {folder.resolve()}")
+    return df
+
