@@ -28,7 +28,7 @@ from src.helper import stratified_sample, dynamic_param_grid, param_spaces
 
 import json
 
-from src.paths import CONFIG_DIR, LOG_DIR, PLOT_DIR
+from src.paths import CONFIG_DIR, LOG_DIR, PARENT_DIR, PLOT_DIR, TUNED_PARAMS_DIR
 
 def grand_tuner(model, param_grid, X, y, cv=5, scoring='roc_auc', use_smote=True, n_iter=20, verbose=True):
     '''
@@ -284,7 +284,7 @@ from src.models.loso_lstm import loso_lstm
 from src.eval import eval_probs, find_best_thresh
 import numpy as np
 
-from src.paths import CONFIG_DIR
+from src.paths import CONFIG_DIR, PARENT_DIR
 
 def optuna_lstm_tuner(n_trials=30, random_state=10,
                       static_config=None, subject_list=None,
@@ -340,8 +340,8 @@ def optuna_lstm_tuner(n_trials=30, random_state=10,
 
     # --- Save best config to disk --- 
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') 
-    config_name = f'best_config_{timestamp}.json'
-    config_path = CONFIG_DIR / config_name
+    config_name = f'LSTM_best_{timestamp}.json'
+    config_path = TUNED_PARAMS_DIR / config_name
 
     with open(config_path, 'w') as f:
         json.dump(study.best_params, f, indent=2) 

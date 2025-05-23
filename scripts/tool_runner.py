@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from pathlib import Path
 
-from src.paths import DATA_DIR, CONFIG_DIR
+from src.paths import DATA_DIR, CONFIG_DIR, TUNED_PARAMS_DIR
 from src.helper import eval_best_config
 
 def main():
@@ -20,7 +20,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == 'eval-best':
-        config_path = CONFIG_DIR / args.config
+        config_path = TUNED_PARAMS_DIR / args.config
         df = pd.read_csv(DATA_DIR / 'eeg_hypno.csv')
 
         # Load saved config
