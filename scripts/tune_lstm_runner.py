@@ -63,7 +63,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
-    # Write Markdown Summary:
+    # Write Markdown Summary
     write_study_summary_md(
         study=study, 
         subject=subject_str,
