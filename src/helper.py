@@ -447,7 +447,7 @@ def open_md_vs(md_path):
     # ... did not work-- I don't think VS Code supports it
     # Manual is the way for now!
 
-from src.paths import TUNED_PARAMS_DIR
+from src.paths import TUNED_PARAMS_DIR, REPORT_DIR
 
 def eval_best_config(config, subject_ids, static_config=None, save_md=False, save_csv=False):
     '''
@@ -484,12 +484,12 @@ def eval_best_config(config, subject_ids, static_config=None, save_md=False, sav
         })
 
     df = pd.DataFrame(results)
-    timestamp = datetime.now().strftime('%Y-%m-%d') 
-    folder = TUNED_PARAMS_DIR / f'eval_best_{timestamp}'
+    timestamp = datetime.now().strftime('%m-%d') 
+    folder = REPORT_DIR / f's{subject}_eval_{timestamp}'
     folder.mkdir(parents=True, exist_ok=True)
 
     if save_csv:
-        df.to_csv(folder / f'eval_results_{timestamp}.csv', index=False) 
+        df.to_csv(folder / f's{subject}_eval_{timestamp}.csv', index=False) 
 
     if save_md:
         lines = [
