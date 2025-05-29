@@ -48,7 +48,7 @@ def main():
             save_csv=args.save
         )
 
-        # Print results to terminal
+        # Print results to terminal:
         for _, r in results_df.iterrows():
             print(f"\n📊 Subject {r['subject']} | F1: {r['f1']:.4f} | Accuracy: {r['accuracy']:.4f} | Threshold: {r['threshold']}")
 
