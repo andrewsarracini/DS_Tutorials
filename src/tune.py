@@ -422,9 +422,23 @@ def analyze_study(study, report_name=None, output_dir=None):
     # --- F1 Line Plot ---
     plt.figure(figsize=(8,4))
     f1_scores = [t.value for t in study.trials if t.value is not None]
-    trials_numbers = [t.number for t in study.trials if t.value is not None]
+    trial_numbers = [t.number for t in study.trials if t.value is not None]
 
-    plt.plot(trials_numbers, f1_scores, marker='o', linestyle='-', alpha=0.7)
+    # Identify best trial
+    best_idx = int(np.argmax(f1_scores))
+    best_trial = trial_numbers[best_idx]
+    best_score = f1_scores[best_idx]
+
+    # plot all trials
+    plt.plot(trial_numbers, f1_scores, marker='o', linestyle='-', alpha=0.7)
+
+    # Highlight best trial (f1)! 
+    plt.scatter(best_trial, best_score, color='red', s=100, zorder=5, label='Best Trial')
+    plt.annotate(f'Best: {best_score:.4f}', xy=(best_trial, best_score),
+                 xytext=(best_trial + 1, best_score - 0.02),
+                 arrowprops=dict(arrowstyle='->', lw=1.5),
+                 fontsize=9, color='red')
+
     plt.title('F1 Score Across Trials')
     plt.xlabel('Trial Number')
     plt.ylabel('F1 Score')

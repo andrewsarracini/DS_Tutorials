@@ -7,35 +7,37 @@
 ---
 
 ## Best Trial
-- **F1 Score**: 0.5366
-- **Threshold**: 0.5
-- **Accuracy**: 0.5298
+- **F1 Score**: 0.8260
+- **Threshold**: 0.7
+- **Accuracy**: 0.8364
 - **Params**
-  - `hidden_size`: 128
-  - `num_layers`: 3
-  - `dropout`: 0.32605054158312186
+  - `hidden_size`: 64
+  - `num_layers`: 2
+  - `dropout`: 0.108466076468862
   - `bidirectional`: True
-  - `learning_rate`: 0.0007451376549375596
-  - `stride`: 1
-  - `seq_len`: 64
-  - `epochs`: 9
-  - `batch_size`: 64
-  - `weight_decay`: 0.0022291764931384015
+  - `learning_rate`: 0.00082609199251563
+  - `stride`: 4
+  - `seq_len`: 128
+  - `epochs`: 13
+  - `batch_size`: 32
+  - `weight_decay`: 0.00010376177657048565
 
 ---
 
 ## Top 5 Trials
 | Trial | F1 Score | Threshold | Accuracy |
 |-------|----------|-----------|----------|
-| 8 | 0.5366 | 0.5 | 0.5298 |
-| 5 | 0.5298 | 0.5 | 0.5146 |
-| 3 | 0.4882 | 0.5 | 0.4930 |
-| 6 | 0.4723 | 0.5 | 0.4537 |
-| 7 | 0.4615 | 0.5 | 0.4623 |
+| 9 | 0.8260 | 0.7 | 0.8364 |
+| 3 | 0.7945 | 0.59 | 0.7877 |
+| 4 | 0.7777 | 0.62 | 0.7787 |
+| 5 | 0.7097 | 0.58 | 0.6788 |
+| 6 | 0.5832 | 0.53 | 0.5399 |
 
 ---
 
 ## Visualizations
+### F1 Line Plot
+![F1 Line Plot](f1_scores_lineplot.png)
 ### Hyperparameter Importance
 ![F1 Importance](f1_importance_barplot.png)
 
