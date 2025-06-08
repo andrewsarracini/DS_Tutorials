@@ -407,6 +407,8 @@ def write_study_summary_md(study, subject=None, out_dir=REPORT_DIR, top_n=5):
     
     # --- Visualizations ---
     markdown.append("## Visualizations")
+    markdown.append('### F1 Line Plot')
+    markdown.append('![F1 Line Plot](f1_scores_lineplot.png)')
     markdown.append("### Hyperparameter Importance")
     markdown.append("![F1 Importance](f1_importance_barplot.png)")
     markdown.append("")
