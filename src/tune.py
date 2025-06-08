@@ -418,7 +418,20 @@ def analyze_study(study, report_name=None, output_dir=None):
     plt.tight_layout()
     plt.savefig(output_dir / 'f1_importance_barplot.png') 
     plt.close()
-    
+
+    # --- F1 Line Plot ---
+    plt.figure(figsize=(8,4))
+    f1_scores = [t.value for t in study.trials if t.value is not None]
+    trials_numbers = [t.number for t in study.trials if t.value is not None]
+
+    plt.plot(trials_numbers, f1_scores, marker='o', linestyle='-', alpha=0.7)
+    plt.title('F1 Score Across Trials')
+    plt.xlabel('Trial Number')
+    plt.ylabel('F1 Score')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'f1_scores_lineplot.png')
+    plt.close()
 
     # --- Correlation Heatmap --- 
     df = study.trials_dataframe() 

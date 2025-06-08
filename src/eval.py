@@ -389,3 +389,4 @@ def eval_probs(y_true, y_probs):
         "confusion_matrix": confusion_matrix(y_true, y_pred).tolist(),  # Optional: for logging/plotting
         "report": classification_report(y_true, y_pred, output_dict=True),  # Optional: full report
     }
+
