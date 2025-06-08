@@ -1,2 +1,5 @@
-0 = NREM
-1 = REM
+0 = N1
+1 = N2
+2 = N3
+3 = REM
+4 = Wake
