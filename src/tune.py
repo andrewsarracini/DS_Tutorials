@@ -272,7 +272,7 @@ def lstm_search_space(trial):
         "num_layers": trial.suggest_int("num_layers", 1, 3),
         "dropout": trial.suggest_float("dropout", 0.1, 0.5),
         "bidirectional": trial.suggest_categorical("bidirectional", [True, False]),
-        "learning_rate": trial.suggest_loguniform("learning_rate", 1e-4, 1e-2),
+        "learning_rate": trial.suggest_loguniform("learning_rate", 1e-5, 1e-2),
         "stride": trial.suggest_categorical("stride", [1, 2, 4]),
         "seq_len": trial.suggest_categorical("seq_len", [32, 64, 128]),
         "epochs": trial.suggest_int("epochs", 5, 15),
