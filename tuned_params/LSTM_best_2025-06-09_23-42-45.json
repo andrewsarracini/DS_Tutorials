@@ -1,0 +1,12 @@
+{
+  "hidden_size": 64,
+  "num_layers": 2,
+  "dropout": 0.36965344602653816,
+  "bidirectional": true,
+  "learning_rate": 0.0007133471581159139,
+  "stride": 2,
+  "seq_len": 128,
+  "epochs": 8,
+  "batch_size": 64,
+  "weight_decay": 0.003062273519768889
+}
