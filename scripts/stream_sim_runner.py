@@ -5,12 +5,12 @@ from pathlib import Path
 from sleep_wave.stream.simulator import StreamSim
 from sleep_wave.utils.file_resolver import get_edf_paths
 
-def main(edf_path, hypnogram_path, extract_features, return_labels, max_epochs):
+def main(edf_path, hypnogram_path, max_epochs):
     stream = StreamSim(
         edf_path=edf_path,
         hypnogram_path=hypnogram_path,
-        extract_features=extract_features,
-        return_labels=return_labels
+        extract_features=True,
+        return_labels=True
     )
 
     print(f"\n🚀 Starting simulated EEG stream from: {edf_path.name}")
@@ -20,12 +20,12 @@ def main(edf_path, hypnogram_path, extract_features, return_labels, max_epochs):
         print(f"Sample Index: {epoch['sample_index']}")
         print(f"EEG Shape: {epoch['eeg'].shape}")
 
-        if extract_features:
+        if stream.extract_features:
             print("Features:")
             for k, v in epoch['features'].items():
                 print(f"  {k}: {v:.4f}")
 
-        if return_labels:
+        if stream.return_labels:
             print(f"Label: {epoch.get('label', 'None')}")
 
         if i + 1 >= max_epochs:
@@ -37,8 +37,6 @@ if __name__ == "__main__":
     parser.add_argument("--subject", type=str, help="4-digit subject ID (e.g., 7011)")
     parser.add_argument("--edf", type=str, help="Optional: Path to PSG EDF file (overrides subject logic)")
     parser.add_argument("--hypnogram", type=str, help="Optional: Path to Hypnogram EDF file")
-    parser.add_argument("--extract_features", action="store_true", help="Enable bandpower feature extraction")
-    parser.add_argument("--return_labels", action="store_true", help="Attach true labels from hypnogram (if available)")
     parser.add_argument("--max_epochs", type=int, default=5, help="Number of epochs to simulate")
 
     args = parser.parse_args()
@@ -55,7 +53,5 @@ if __name__ == "__main__":
     main(
         edf_path=edf_path,
         hypnogram_path=hypnogram_path,
-        extract_features=args.extract_features,
-        return_labels=args.return_labels,
         max_epochs=args.max_epochs
     )
