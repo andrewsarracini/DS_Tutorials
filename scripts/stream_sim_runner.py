@@ -23,7 +23,7 @@ def main(edf_path, hypnogram_path, max_epochs):
         if stream.extract_features:
             print("Features:")
             for k, v in epoch['features'].items():
-                print(f"  {k}: {v:.4f}")
+                print(f"  {k}: {v:.2e}")
 
         if stream.return_labels:
             print(f"Label: {epoch.get('label', 'None')}")

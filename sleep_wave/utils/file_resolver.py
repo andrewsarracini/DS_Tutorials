@@ -8,24 +8,17 @@ def get_edf_paths(subject_id: str):
     Given a subject ID (ex. 7011), returns matching PSG and Hypnogram EDF paths
     '''
 
-    subject_tag = f'ST{subject_id}'
+    subject_tag = f"ST{subject_id}J"
+    subject_dir = DATA_DIR / 'sleep_waves'
 
     # Match PSG
-    psg_candidates = list(DATA_DIR.glob(f'{subject_tag}*-PSG.edf'))
+    psg_candidates = list(subject_dir.glob(f"{subject_tag}*-PSG.edf"))
     if not psg_candidates:
-        raise FileNotFoundError(f'PSG file for s{subject_id} not found')
-    if len(psg_candidates) > 1:
-        print(f'[WARN] Multiple PSG files found for s{subject_id}, using first: {psg_candidates[0]}')
-    psg_path = psg_candidates[0] 
+        raise FileNotFoundError(f"PSG file for subject {subject_id} not found.")
+    psg_path = psg_candidates[0]
 
     # Match Hypno
-    hypnogram_candidates = list(DATA_DIR.glob(f'{subject_tag}*-Hypnogram.edf'))
-    if not hypnogram_candidates:
-        print(f'[WARN] No Hypnogram found for subject s{subject_id}. No labels applied')
-        hypnogram_path = None
-    else:
-        hypnogram_path = hypnogram_candidates[0]
-        if len(hypnogram_candidates) > 1: 
-            print(f'[WARN] Multiple Hypnogram files found for s{subject_id}, using first: {hypnogram_candidates[0]}')
-        
+    hypnogram_candidates = list(subject_dir.glob(f"{subject_tag}*-Hypnogram.edf"))
+    hypnogram_path = hypnogram_candidates[0] if hypnogram_candidates else None
+
     return psg_path, hypnogram_path

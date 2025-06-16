@@ -70,12 +70,14 @@ class StreamSim:
         }
 
         if self.extract_features:
+
+            n_ftt = self.samples_per_epoch # using full window length
             psds, freqs = psd_array_welch(
                 segment[np.newaxis, np.newaxis, :],
                 sfreq=self.sfreq,
                 fmin=0.5,
                 fmax=40,
-                n_fft=256
+                n_fft=n_ftt
             )
             out["features"] = {
                 'delta': bandpower(psds, freqs, (0.5, 4))[0],
