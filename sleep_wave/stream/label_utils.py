@@ -1,22 +1,26 @@
-# sleep_wave/stream/label_utils.py
+import math
 
 def extract_epoch_labels(annotations, epoch_len, total_duration, stage_map):
-    n_epochs = total_duration // epoch_len
+    n_epochs = int(math.ceil(total_duration / epoch_len))
     labels = ['UNKNOWN'] * n_epochs
 
     for ann in annotations:
-        normalized = ann['description'].strip().lower()
-        label = stage_map.get(normalized)
+        desc = ann['description'].strip().lower()
+        print(f"[NORMALIZED CHECK] '{ann['description']}' → '{desc}'")
+        label = stage_map.get(desc)
         if label is None:
+            print(f"[UNMAPPED] '{desc}'")
+        else: 
+            print(f'[MAPPED] "{desc}" -> {label}')
             continue
-        start = int(ann['onset']) // epoch_len
-        duration_epochs = int(ann['duration']) // epoch_len
-        for i in range(start, min(start + duration_epochs, n_epochs)):
+
+        onset = float(ann['onset'])
+        duration = float(ann['duration'])
+
+        start_epoch = int(onset // epoch_len)
+        end_epoch = int(math.ceil((onset + duration) / epoch_len))
+
+        for i in range(start_epoch, min(end_epoch, n_epochs)):
             labels[i] = label
-
-        if label is None:
-            print(f"[WARN] Unmapped label: '{ann['description']}' (normalized: '{normalized}')")
-            continue
-
 
     return labels
