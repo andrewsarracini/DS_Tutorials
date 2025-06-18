@@ -1,26 +1,38 @@
-import math
+from collections import Counter
 
-def extract_epoch_labels(annotations, epoch_len, total_duration, stage_map):
-    n_epochs = int(math.ceil(total_duration / epoch_len))
+def extract_epoch_labels(annotations, epoch_len, total_duration, stage_map, debug=False):
+    n_epochs = total_duration // epoch_len
     labels = ['UNKNOWN'] * n_epochs
 
+    raw_counts = Counter()
+
     for ann in annotations:
-        desc = ann['description'].strip().lower()
-        print(f"[NORMALIZED CHECK] '{ann['description']}' → '{desc}'")
-        label = stage_map.get(desc)
+        raw = ann['description']
+        normalized = raw.strip().lower()
+        label = stage_map.get(normalized, None)
+        raw_counts[normalized] += 1
+
+        if debug:
+            print(f"[ANNOTATION] '{raw}' → normalized: '{normalized}'")
+
         if label is None:
-            print(f"[UNMAPPED] '{desc}'")
-        else: 
-            print(f'[MAPPED] "{desc}" -> {label}')
+            if debug:
+                print(f"  [UNMAPPED] '{normalized}' not in stage_map")
             continue
 
-        onset = float(ann['onset'])
-        duration = float(ann['duration'])
+        onset_epoch = int(ann['onset']) // epoch_len
+        duration_epochs = int(ann['duration']) // epoch_len
+        end_epoch = min(onset_epoch + duration_epochs, n_epochs)
 
-        start_epoch = int(onset // epoch_len)
-        end_epoch = int(math.ceil((onset + duration) / epoch_len))
+        if debug:
+            print(f"  [MAPPED] '{normalized}' → '{label}'")
+            print(f"  → Labeling epochs {onset_epoch} to {end_epoch - 1} with '{label}'")
 
-        for i in range(start_epoch, min(end_epoch, n_epochs)):
+        for i in range(onset_epoch, end_epoch):
             labels[i] = label
+
+    if debug:
+        print(f"[SUMMARY] Raw Label Counts:\n{raw_counts}")
+        print(f"[SUMMARY] Final Label Distribution: {Counter(labels)}")
 
     return labels

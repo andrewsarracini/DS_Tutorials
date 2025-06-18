@@ -1,5 +1,3 @@
-# sleep_wave/stream/simulator.py
-
 import numpy as np
 import mne
 from mne.time_frequency import psd_array_welch
@@ -10,7 +8,8 @@ from sleep_wave.stream.label_utils import extract_epoch_labels
 
 class StreamSim:
     def __init__(self, edf_path, hypnogram_path=None, epoch_len=30,
-                 extract_features=False, return_labels=False):
+                 extract_features=False, return_labels=False,
+                 skip_unlabeled_head=True, debug=False):
         """
         Simulates real-time EEG streaming by yielding one 30s epoch at a time.
 
@@ -20,9 +19,10 @@ class StreamSim:
             epoch_len (int): Length of each simulated epoch in seconds
             extract_features (bool): Whether to compute bandpower features
             return_labels (bool): Whether to include true labels from hypnogram
+            skip_unlabeled_head (bool): If True, skips epochs at the beginning with 'UNKNOWN' label
+            debug (bool): If True, prints debug info
         """
 
-        # Load EEG and (if available) annotations before extracting data
         self.raw = mne.io.read_raw_edf(edf_path, preload=True)
         if hypnogram_path and return_labels:
             self.raw.set_annotations(mne.read_annotations(hypnogram_path))
@@ -37,11 +37,7 @@ class StreamSim:
         self.return_labels = return_labels
         self.subject_id = str(edf_path.name)[2:6]  # Assumes ST####J format
 
-        # DEBUG: print out all annotations (to confirm they’re loaded)
-        for ann in self.raw.annotations:
-            print(f"[DEBUG] Annotation: {ann['onset']:.2f}s - {ann['duration']:.2f}s - {ann['description']}")
-
-        # Lowercased label map for normalized comparisons
+        # Label normalization map
         self.label_map = {
             'sleep stage w': 'Wake',
             'sleep stage 1': 'N1',
@@ -58,10 +54,20 @@ class StreamSim:
                 self.raw.annotations,
                 epoch_len,
                 int(total_secs),
-                self.label_map
+                self.label_map,
+                debug=debug
             )
 
-        self.current_idx = 0
+        # Determine starting index
+        if return_labels and skip_unlabeled_head and self.labels:
+            try:
+                self.start_idx = next(i for i, lbl in enumerate(self.labels) if lbl != 'UNKNOWN')
+            except StopIteration:
+                raise ValueError("No labeled epochs found.")
+        else:
+            self.start_idx = 0
+
+        self.current_idx = self.start_idx
 
     def __iter__(self):
         return self
