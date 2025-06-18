@@ -21,8 +21,6 @@ class StreamSim:
             return_labels (bool): Whether to include true labels from hypnogram
         """
 
-        print("[DEBUG] Found annotations:", list(self.raw.annotations))
-
         self.raw = mne.io.read_raw_edf(edf_path, preload=True)
         self.raw.pick(['EEG Fpz-Cz'])
         self.sfreq = self.raw.info['sfreq']
@@ -35,12 +33,12 @@ class StreamSim:
         self.subject_id = str(edf_path.name)[2:6]  # Assumes ST####J format
 
         self.label_map = {
-            'Sleep stage W': 'Wake',
+            'Sleep stage w': 'Wake',
             'Sleep stage 1': 'N1',
             'Sleep stage 2': 'N2',
             'Sleep stage 3': 'N3',
             'Sleep stage 4': 'N3',
-            'Sleep stage R': 'REM'
+            'Sleep stage r': 'REM'
         }
 
         self.labels = []
@@ -51,6 +49,10 @@ class StreamSim:
                                                epoch_len,
                                                int(total_secs),
                                                self.label_map)
+            
+        for ann in self.raw.annotations:
+            print(f"[DEBUG] Annotation: {ann['onset']:.2f}s - {ann['duration']:.2f}s - {ann['description']}")
+
 
         self.current_idx = 0
 
