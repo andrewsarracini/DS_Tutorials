@@ -7,6 +7,7 @@ from mne.time_frequency import psd_array_welch
 from sleep_wave.features.utils import bandpower
 from sleep_wave.stream.label_utils import extract_epoch_labels
 
+
 class StreamSim:
     def __init__(self, edf_path, hypnogram_path=None, epoch_len=30,
                  extract_features=False, return_labels=False):
@@ -21,7 +22,11 @@ class StreamSim:
             return_labels (bool): Whether to include true labels from hypnogram
         """
 
+        # Load EEG and (if available) annotations before extracting data
         self.raw = mne.io.read_raw_edf(edf_path, preload=True)
+        if hypnogram_path and return_labels:
+            self.raw.set_annotations(mne.read_annotations(hypnogram_path))
+
         self.raw.pick(['EEG Fpz-Cz'])
         self.sfreq = self.raw.info['sfreq']
         self.data = self.raw.get_data()[0]
@@ -32,27 +37,30 @@ class StreamSim:
         self.return_labels = return_labels
         self.subject_id = str(edf_path.name)[2:6]  # Assumes ST####J format
 
+        # DEBUG: print out all annotations (to confirm they’re loaded)
+        for ann in self.raw.annotations:
+            print(f"[DEBUG] Annotation: {ann['onset']:.2f}s - {ann['duration']:.2f}s - {ann['description']}")
+            print(f"[DEBUG] Annotation type: {type(self.raw.annotations[0])}")
+
+        # Lowercased label map for normalized comparisons
         self.label_map = {
-            'Sleep stage w': 'Wake',
-            'Sleep stage 1': 'N1',
-            'Sleep stage 2': 'N2',
-            'Sleep stage 3': 'N3',
-            'Sleep stage 4': 'N3',
-            'Sleep stage r': 'REM'
+            'sleep stage w': 'Wake',
+            'sleep stage 1': 'N1',
+            'sleep stage 2': 'N2',
+            'sleep stage 3': 'N3',
+            'sleep stage 4': 'N3',
+            'sleep stage r': 'REM'
         }
 
         self.labels = []
         if hypnogram_path and return_labels:
-            self.raw.set_annotations(mne.read_annotations(hypnogram_path))
             total_secs = self.total_samples / self.sfreq
-            self.labels = extract_epoch_labels(self.raw.annotations,
-                                               epoch_len,
-                                               int(total_secs),
-                                               self.label_map)
-            
-        for ann in self.raw.annotations:
-            print(f"[DEBUG] Annotation: {ann['onset']:.2f}s - {ann['duration']:.2f}s - {ann['description']}")
-
+            self.labels = extract_epoch_labels(
+                self.raw.annotations,
+                epoch_len,
+                int(total_secs),
+                self.label_map
+            )
 
         self.current_idx = 0
 
@@ -75,14 +83,12 @@ class StreamSim:
         }
 
         if self.extract_features:
-
-            n_ftt = self.samples_per_epoch # using full window length
             psds, freqs = psd_array_welch(
                 segment[np.newaxis, np.newaxis, :],
                 sfreq=self.sfreq,
                 fmin=0.5,
                 fmax=40,
-                n_fft=n_ftt
+                n_fft=self.samples_per_epoch
             )
             out["features"] = {
                 'delta': bandpower(psds, freqs, (0.5, 4))[0],
