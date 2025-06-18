@@ -5,8 +5,8 @@ def extract_epoch_labels(annotations, epoch_len, total_duration, stage_map):
     labels = ['UNKNOWN'] * n_epochs
 
     for ann in annotations:
-        desc = ann['description'].strip().lower()
-        label = stage_map.get(desc, None)
+        normalized = ann['description'].strip().lower()
+        label = stage_map.get(normalized, None)
         if label is None:
             continue
 
