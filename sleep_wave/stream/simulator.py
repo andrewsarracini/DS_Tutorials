@@ -40,7 +40,6 @@ class StreamSim:
         # DEBUG: print out all annotations (to confirm they’re loaded)
         for ann in self.raw.annotations:
             print(f"[DEBUG] Annotation: {ann['onset']:.2f}s - {ann['duration']:.2f}s - {ann['description']}")
-            print(f"[DEBUG] Annotation type: {type(self.raw.annotations[0])}")
 
         # Lowercased label map for normalized comparisons
         self.label_map = {
