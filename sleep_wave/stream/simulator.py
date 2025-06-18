@@ -20,6 +20,9 @@ class StreamSim:
             extract_features (bool): Whether to compute bandpower features
             return_labels (bool): Whether to include true labels from hypnogram
         """
+
+        print("[DEBUG] Found annotations:", list(self.raw.annotations))
+
         self.raw = mne.io.read_raw_edf(edf_path, preload=True)
         self.raw.pick(['EEG Fpz-Cz'])
         self.sfreq = self.raw.info['sfreq']
