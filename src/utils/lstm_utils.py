@@ -40,21 +40,37 @@ def build_dataloaders(df_train, df_test, feature_cols, label_col, window_size, s
 from src.paths import ENCODER_DIR, REPORT_DIR
 
 # from helper.py
+from sklearn.preprocessing import LabelEncoder
+import joblib
+from pathlib import Path
+from src.paths import ENCODER_DIR
+
 def encode_labels(df_train, df_test, label_col, subject_id, save_dir=ENCODER_DIR):
-    le = LabelEncoder()
-    df_train[label_col] = le.fit_transform(df_train[label_col])
-    df_test[label_col] = le.transform(df_test[label_col])
-    
-    save_dir.mkdir(parents=True, exist_ok=True)
-    encoder_path = save_dir / f'le_s{subject_id}.pkl'
-    joblib.dump(le, encoder_path) 
+    """
+    Encodes the label column consistently between train and test.
 
-    with open(save_dir / f'classes_s{subject_id}.txt', 'w') as f:
-        for i, label in enumerate(le.classes_):
-            f.write(f'{i} = {label}\n')
+    For binary tasks, it maps 'NREM' -> 0 and 'REM' -> 1 explicitly (safe for BCEWithLogitsLoss).
+    For multiclass tasks, it uses sklearn's LabelEncoder and saves the encoder to disk.
 
-    return df_train, df_test, le, encoder_path
+    Returns:
+        df_train (DataFrame), df_test (DataFrame), fitted encoder (or None for binary), encoder_path
+    """
+    if df_train[label_col].nunique() == 2:
+        # Assume binary REM/NREM task
+        label_map = {'NREM': 0, 'REM': 1}
+        df_train[label_col] = df_train[label_col].map(label_map)
+        df_test[label_col] = df_test[label_col].map(label_map)
+        return df_train, df_test, None, None
+    else:
+        # Multiclass case
+        le = LabelEncoder()
+        df_train[label_col] = le.fit_transform(df_train[label_col])
+        df_test[label_col] = le.transform(df_test[label_col])
 
+        encoder_path = save_dir / f'le_s{subject_id}.pkl'
+        joblib.dump(le, encoder_path)
+
+        
 # from helper.py 
 # Eval-- plugs directly into plot_threshold_curves
 def find_best_threshold(y_true, y_probs, metric='f1', plot=True):

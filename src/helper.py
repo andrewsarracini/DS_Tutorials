@@ -519,3 +519,17 @@ def eval_best_config(config, subject_ids, static_config=None, save_md=False, sav
     print(f"✅ Evaluation complete. Results saved to: {folder.resolve()}")
     return df
 
+def split_subject_data(df, subject_id):
+    """
+    Splits a dataframe into train and test sets for Leave-One-Subject-Out (LOSO) validation.
+
+    Args:
+        df (pd.DataFrame): Full EEG dataset with a 'subject_id' column.
+        subject_id (int): Subject to use as the test set.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: (df_train, df_test)
+    """
+    df_test = df[df['subject_id'] == subject_id].copy()
+    df_train = df[df['subject_id'] != subject_id].copy()
+    return df_train, df_test
