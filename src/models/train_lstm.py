@@ -6,6 +6,8 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from src.logger_setup import logger
 
+from src.paths import MODEL_DIR
+
 def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optimizer,
                loss_fn: torch.nn.Module, device: torch.device, n_epochs=10, 
                verbose=True, is_binary=False, threshold=0.5):
@@ -127,6 +129,11 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
                     f"Val Acc: {acc:.4f} | F1: {f1:.4f}")
                 
             logger.info(f'[E{epoch+1}] Train={train_loss:.4f} Val={val_loss:.4f} Acc={acc:.4f} F1={f1:.4f}')
+
+
+    if hasattr(model, "subject_id"):
+        torch.save(model.state_dict(), MODEL_DIR / f"best_lstm_{model.subject_id}.pt")
+
         
     print("✅ LSTM training complete.\n")
     return model

@@ -17,6 +17,13 @@ def main():
     eval_parser.add_argument('--binary', action='store_true', help='Use binary REM/NREM labels')
     eval_parser.add_argument('--save', action='store_true', help='Save results to .md and .csv')
 
+    # Subcommand: train_lstm
+    train_parser = subparsers.add_parser('train-lstm', help='train LSTM on a subject')
+    train_parser.add_argument('--subject', type=int, required=True, help='Subject ID to train on')
+    train_parser.add_argument('--binary', action='store_true', help='Use binary REM/NREM labels')
+    train_parser.add_argument('--epochs', type=int, default=10, help='Number of training epochs')
+    train_parser.add_argument('--save', action='store_true', help='Save trained model to .pt file')
+
     args = parser.parse_args()
 
     if args.command == 'eval-best':
@@ -51,6 +58,37 @@ def main():
         # Print results to terminal:
         for _, r in results_df.iterrows():
             print(f"\n📊 Subject {r['subject']} | F1: {r['f1']:.4f} | Accuracy: {r['accuracy']:.4f} | Threshold: {r['threshold']}")
+
+    elif args.command == 'train-lstm':
+        import torch
+        import torch.nn as nn
+        from src.models.train_lstm import train_lstm
+        from src.models.lstm_model import SleepLSTM
+        from src.helper import build_dataloaders
+        from src.paths import MODEL_DIR
+
+        subject = args.subject
+        dataloaders = build_dataloaders(subject, binary=args.binary)
+        
+        model = SleepLSTM(
+            input_size=4,
+            hidden_size=128,
+            num_layers=2,
+            bidirectional=True,
+            is_binary=args.binary
+        )
+
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+        loss_fn = nn.BCEWithLogitsLoss() if args.binary else nn.CrossEntropyLoss()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        model = train_lstm(model, dataloaders, optimizer, loss_fn, device,
+                           n_epochs=args.epochs, is_binary=args.binary)
+
+        if args.save:
+            path = MODEL_DIR / f"best_lstm_{subject}.pt"
+            torch.save(model.state_dict(), path)
+            print(f"✅ Saved model to {path}")
 
 if __name__ == '__main__':
     main()
