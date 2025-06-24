@@ -97,12 +97,14 @@ def main():
 
         # Initialize model
         from src.models.lstm_model import SleepLSTM
+        num_classes = 1 if args.binary else 5
         model = SleepLSTM(
             input_size=len(feature_cols),
             hidden_size=config['hidden_size'],
             num_layers=config['num_layers'],
             dropout=config['dropout'],
-            bidirectional=config['bidirectional']
+            bidirectional=config['bidirectional'],
+            num_classes=num_classes
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=config['learning_rate'])

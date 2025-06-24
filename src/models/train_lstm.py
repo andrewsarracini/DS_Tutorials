@@ -144,8 +144,12 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
             logger.info(f'[E{epoch+1}] Train={train_loss:.4f} Val={val_loss:.4f} Acc={acc:.4f} F1={f1:.4f}')
 
 
-    if hasattr(model, "subject_id"):
-        torch.save(model.state_dict(), MODEL_DIR / f"best_lstm_{model.subject_id}.pt")
+    if save_path is not None:
+        torch.save(model.state_dict(), save_path)
+        print(f"✅ Model saved to {save_path}")
+    else:
+        print("⚠️ No save_path provided. Model not saved.")
+
 
         
     print("✅ LSTM training complete.\n")
