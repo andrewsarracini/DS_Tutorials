@@ -151,3 +151,27 @@ def print_eval_summary(preds, targets, encoder_path):
 
     logger.info("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
     print("\n--- Class Distribution ---\n" + dist_df.to_string(index=False))
+
+# from helper 
+# circular import made me put it here:
+def flatten_outputs_targets(outputs, targets, is_binary): 
+    '''
+    Reshape outputs and targets for loss calc 
+
+    Args: 
+        outputs (Tensor): Model outputs
+        targets (Tensor): Ground truth labels 
+        is_binary (Bool): Whether binary classification
+
+    Returns
+        tuple (Tensor, Tensor): Flattened outputs and targets
+    '''
+
+    if is_binary: 
+        outputs = outputs.squeeze(-1)
+        outputs = outputs.view(-1) 
+        targets = targets.view(-1).float()
+    else: 
+        outputs = outputs.view(-1, outputs.size(-1)) 
+        targets = targets.view(-1)
+    return outputs, targets

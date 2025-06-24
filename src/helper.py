@@ -533,25 +533,3 @@ def split_subject_data(df, subject_id):
     df_test = df[df['subject_id'] == subject_id].copy()
     df_train = df[df['subject_id'] != subject_id].copy()
     return df_train, df_test
-
-def flatten_outputs_targets(outputs, targets, is_binary): 
-    '''
-    Reshape outputs and targets for loss calc 
-
-    Args: 
-        outputs (Tensor): Model outputs
-        targets (Tensor): Ground truth labels 
-        is_binary (Bool): Whether binary classification
-
-    Returns
-        tuple (Tensor, Tensor): Flattened outputs and targets
-    '''
-
-    if is_binary: 
-        outputs = outputs.squeeze(-1)
-        outputs = outputs.view(-1) 
-        targets = targets.view(-1).float()
-    else: 
-        outputs = outputs.view(-1, outputs.size(-1)) 
-        targets = targets.view(-1)
-    return outputs, targets
