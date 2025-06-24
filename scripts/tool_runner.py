@@ -109,6 +109,9 @@ def main():
         loss_fn = nn.BCEWithLogitsLoss() if args.binary else nn.CrossEntropyLoss()
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+        # Establishing the save path earlier
+        model_save_path = MODEL_DIR / f"best_lstm_{args.subject}.pt"
+
         # Train
         from src.models.train_lstm import train_lstm
         trained_model = train_lstm(
@@ -120,11 +123,11 @@ def main():
             n_epochs=args.epochs,
             verbose=True,
             is_binary=args.binary,
-            threshold=config.get('threshold', 0.5)
+            threshold=config.get('threshold', 0.5),
+            save_path = model_save_path
         )
 
         # Save model checkpoint
-        model_save_path = MODEL_DIR / f"best_lstm_{args.subject}.pt"
         torch.save(trained_model.state_dict(), model_save_path)
         print(f"✅ Model saved to {model_save_path}")
 

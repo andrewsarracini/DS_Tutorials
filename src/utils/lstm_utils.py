@@ -47,29 +47,25 @@ from src.paths import ENCODER_DIR
 
 def encode_labels(df_train, df_test, label_col, subject_id, save_dir=ENCODER_DIR):
     """
-    Encodes the label column consistently between train and test.
-
-    For binary tasks, it maps 'NREM' -> 0 and 'REM' -> 1 explicitly (safe for BCEWithLogitsLoss).
-    For multiclass tasks, it uses sklearn's LabelEncoder and saves the encoder to disk.
+    Applies LabelEncoder to train/test splits and saves the encoder.
 
     Returns:
-        df_train (DataFrame), df_test (DataFrame), fitted encoder (or None for binary), encoder_path
+        df_train (DataFrame): with encoded labels
+        df_test (DataFrame): with encoded labels
+        le (LabelEncoder): fitted encoder
+        encoder_path (Path): path to saved encoder
     """
-    if df_train[label_col].nunique() == 2:
-        # Assume binary REM/NREM task
-        label_map = {'NREM': 0, 'REM': 1}
-        df_train[label_col] = df_train[label_col].map(label_map)
-        df_test[label_col] = df_test[label_col].map(label_map)
-        return df_train, df_test, None, None
-    else:
-        # Multiclass case
-        le = LabelEncoder()
-        df_train[label_col] = le.fit_transform(df_train[label_col])
-        df_test[label_col] = le.transform(df_test[label_col])
+    le = LabelEncoder()
+    df_train[label_col] = df_train[label_col].copy()
+    df_test[label_col] = df_test[label_col].copy()
+    
+    df_train[label_col] = le.fit_transform(df_train[label_col])
+    df_test[label_col] = le.transform(df_test[label_col])
 
-        encoder_path = save_dir / f'le_s{subject_id}.pkl'
-        joblib.dump(le, encoder_path)
+    encoder_path = save_dir / f'le_s{subject_id}.pkl'
+    joblib.dump(le, encoder_path)
 
+    return df_train, df_test, le, encoder_path
         
 # from helper.py 
 # Eval-- plugs directly into plot_threshold_curves

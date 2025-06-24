@@ -5,13 +5,13 @@ import torch.nn as nn
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from src.logger_setup import logger
-from src.helper import flatten_outputs_targets
+from src.utils.lstm_utils import flatten_outputs_targets
 
 from src.paths import MODEL_DIR
 
 def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optimizer,
                loss_fn: torch.nn.Module, device: torch.device, n_epochs=10, 
-               verbose=True, is_binary=False, threshold=0.5):
+               verbose=True, is_binary=False, threshold=0.5, save_path=None):
     '''
     Trains a PyTorch LSTM model using epoch-based loop with binary or multiclass support
 
