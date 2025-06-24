@@ -5,6 +5,7 @@ import torch.nn as nn
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from src.logger_setup import logger
+from src.helper import flatten_outputs_targets
 
 from src.paths import MODEL_DIR
 
@@ -50,15 +51,21 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
             optimizer.zero_grad()
             outputs = model(inputs) 
 
-            # Flattening for seq2seq loss
-            if is_binary:
-                outputs = outputs.squeeze(-1)
-                targets = targets  # shape: (batch, seq_len)
-                outputs = outputs.view(-1)
-                targets = targets.view(-1).float()
-            else:
-                outputs = outputs.view(-1, outputs.size(-1))
-                targets = targets.view(-1)
+            # --------------------------------------------------
+            # IF THINGS BREAK, COME BACK HERE
+
+            # # Flattening for seq2seq loss
+            # if is_binary:
+            #     outputs = outputs.squeeze(-1)
+            #     targets = targets  # shape: (batch, seq_len)
+            #     outputs = outputs.view(-1)
+            #     targets = targets.view(-1).float()
+            # else:
+            #     outputs = outputs.view(-1, outputs.size(-1))
+            #     targets = targets.view(-1)
+            #----------------------------------------------------
+
+            outputs, targets = flatten_outputs_targets(outputs, targets, is_binary)
 
 
             # compute the loss 
@@ -88,16 +95,22 @@ def train_lstm(model: nn.Module, dataloaders: dict, optimizer: torch.optim.Optim
 
                 outputs = model(inputs)
 
-                if is_binary:
-                    outputs = outputs.squeeze(-1)
-                    targets = targets
-                    outputs_flat = outputs.view(-1)
-                    targets_flat = targets.view(-1).float()
-                else:
-                    outputs_flat = outputs.view(-1, outputs.size(-1))
-                    targets_flat = targets.view(-1)
+                # -------------------------------------------------
+                # IF THINGS BREAK, COME BACK HERE
 
-                loss = loss_fn(outputs_flat, targets_flat)
+                # if is_binary:
+                #     outputs = outputs.squeeze(-1)
+                #     targets = targets
+                #     outputs_flat = outputs.view(-1)
+                #     targets_flat = targets.view(-1).float()
+                # else:
+                #     outputs_flat = outputs.view(-1, outputs.size(-1))
+                #     targets_flat = targets.view(-1)
+                # --------------------------------------------------
+
+                outputs, targets = flatten_outputs_targets(outputs, targets, is_binary)
+
+                loss = loss_fn(outputs, targets)
                 val_loss += loss.item()
 
                 if is_binary: 
