@@ -171,6 +171,6 @@ def flatten_outputs_targets(outputs, targets, is_binary):
         outputs = outputs.view(-1, outputs.size(-1)) 
         targets = targets.view(-1)
 
-    print(f"[DEBUG] outputs shape: {outputs.shape} | targets shape: {targets.shape}")
+    # print(f"[DEBUG] outputs shape: {outputs.shape} | targets shape: {targets.shape}")
     
     return outputs, targets
